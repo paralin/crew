@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # constants
-DOKKU_ROOT=${DOKKU_ROOT:=~dokku}
-PLUGIN_PATH=${PLUGIN_PATH:="/var/lib/dokku/plugins"}
+CREW_ROOT=${CREW_ROOT:=~crew}
+PLUGIN_PATH=${PLUGIN_PATH:="/var/lib/crew/plugins"}
 TEST_APP=my-cool-guy-test-app
 
 # test functions
@@ -84,26 +84,22 @@ assert_exit_status() {
   assert_equal "$status" "$1"
 }
 
-# dokku functions
+# crew functions
 create_app() {
-  dokku apps:create $TEST_APP
+  crew apps:create $TEST_APP
 }
 
 destroy_app() {
   local RC="$1"; local RC=${RC:=0}
   local TEST_APP="$2"; local TEST_APP=${TEST_APP:=my-cool-guy-test-app}
-  echo $TEST_APP | dokku apps:destroy $TEST_APP
+  echo $TEST_APP | crew apps:destroy $TEST_APP
   return $RC
-}
-
-add_domain() {
-  dokku domains:add $TEST_APP $1
 }
 
 deploy_app() {
   APP_TYPE="$1"; APP_TYPE=${APP_TYPE:="nodejs-express"}
-  GIT_REMOTE="$2"; GIT_REMOTE=${GIT_REMOTE:="dokku@dokku.me:$TEST_APP"}
-  TMP=$(mktemp -d -t "dokku.me.XXXXX")
+  GIT_REMOTE="$2"; GIT_REMOTE=${GIT_REMOTE:="crew@crew.me:$TEST_APP"}
+  TMP=$(mktemp -d -t "crew.me.XXXXX")
   rmdir $TMP && cp -r ./tests/apps/$APP_TYPE $TMP
   cd $TMP
   git init
@@ -119,7 +115,7 @@ deploy_app() {
 }
 
 setup_client_repo() {
-  TMP=$(mktemp -d -t "dokku.me.XXXXX")
+  TMP=$(mktemp -d -t "crew.me.XXXXX")
   rmdir $TMP && cp -r ./tests/apps/nodejs-express $TMP
   cd $TMP
   git init
@@ -129,96 +125,4 @@ setup_client_repo() {
   [[ -f gitignore ]] && mv gitignore .gitignore
   git add .
   git commit -m 'initial commit'
-}
-
-setup_test_tls() {
-  TLS="/home/dokku/$TEST_APP/tls"
-  mkdir -p $TLS
-  tar xf $BATS_TEST_DIRNAME/server_ssl.tar -C $TLS
-  sudo chown -R dokku:dokku $TLS
-}
-
-setup_test_tls_with_sans() {
-  TLS="/home/dokku/$TEST_APP/tls"
-  mkdir -p $TLS
-  tar xf $BATS_TEST_DIRNAME/server_ssl_sans.tar -C $TLS
-  sudo chown -R dokku:dokku $TLS
-}
-
-setup_test_tls_wildcard() {
-  TLS="/home/dokku/tls"
-  mkdir -p $TLS
-  tar xf $BATS_TEST_DIRNAME/server_ssl_wildcard.tar -C $TLS
-  sudo chown -R dokku:dokku $TLS
-  sed -i -e "s:^# ssl_certificate $DOKKU_ROOT/tls/server.crt;:ssl_certificate $DOKKU_ROOT/tls/server.crt;:g" \
-         -e "s:^# ssl_certificate_key $DOKKU_ROOT/tls/server.key;:ssl_certificate_key $DOKKU_ROOT/tls/server.key;:g" /etc/nginx/conf.d/dokku.conf
-  kill -HUP "$(< /var/run/nginx.pid)"; sleep 5
-}
-
-disable_tls_wildcard() {
-  TLS="/home/dokku/tls"
-  rm -rf $TLS
-  sed -i -e "s:^ssl_certificate $DOKKU_ROOT/tls/server.crt;:# ssl_certificate $DOKKU_ROOT/tls/server.crt;:g" \
-         -e "s:^ssl_certificate_key $DOKKU_ROOT/tls/server.key;:# ssl_certificate_key $DOKKU_ROOT/tls/server.key;:g" /etc/nginx/conf.d/dokku.conf
-  kill -HUP "$(< /var/run/nginx.pid)"; sleep 5
-}
-
-custom_ssl_nginx_template() {
-  APP="$1"
-  [[ -z "$APP" ]] && APP="$TEST_APP"
-cat<<EOF > $DOKKU_ROOT/$APP/nginx.conf.template
-server {
-  listen      [::]:80;
-  listen      80;
-  server_name \$NOSSL_SERVER_NAME;
-  return 301 https://\$SSL_SERVER_NAME\\\$request_uri;
-}
-
-server {
-  listen      [::]:443 ssl spdy;
-  listen      443 ssl spdy;
-  server_name \$SSL_SERVER_NAME;
-\$SSL_DIRECTIVES
-
-  keepalive_timeout   70;
-  add_header          Alternate-Protocol  443:npn-spdy/2;
-  location    / {
-    proxy_pass  http://\$APP;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade \\\$http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host \\\$http_host;
-    proxy_set_header X-Forwarded-Proto \\\$scheme;
-    proxy_set_header X-Forwarded-For \\\$remote_addr;
-    proxy_set_header X-Forwarded-Port \\\$server_port;
-    proxy_set_header X-Request-Start \\\$msec;
-  }
-  include \$DOKKU_ROOT/\$APP/nginx.conf.d/*.conf;
-}
-EOF
-}
-
-custom_nginx_template() {
-  APP="$1"
-  [[ -z "$APP" ]] && APP="$TEST_APP"
-cat<<EOF > $DOKKU_ROOT/$APP/nginx.conf.template
-server {
-  listen      [::]:80;
-  listen      80;
-  server_name \$NOSSL_SERVER_NAME;
-
-  location    / {
-    proxy_pass  http://\$APP;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade \\\$http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header Host \\\$http_host;
-    proxy_set_header X-Forwarded-Proto \\\$scheme;
-    proxy_set_header X-Forwarded-For \\\$remote_addr;
-    proxy_set_header X-Forwarded-Port \\\$server_port;
-    proxy_set_header X-Request-Start \\\$msec;
-  }
-  include \$DOKKU_ROOT/\$APP/nginx.conf.d/*.conf;
-}
-EOF
 }

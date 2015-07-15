@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
 
 case "$1" in
   shell)
     INPUTRC="$PLUGIN_ROOT/inputrc"
-    HISTFILE=~/.dokku_history
+    HISTFILE=~/.crew_history
 
     history -r || true
 
@@ -17,7 +17,7 @@ case "$1" in
 
     while true; do
       trap '' SIGINT
-      read -ep "dokku> " line || {
+      read -ep "crew> " line || {
         echo; true; break
       }
       trap - SIGINT
@@ -38,9 +38,9 @@ case "$1" in
           break
           ;;
 
-    # Not a built-in, run as regular dokku command
+    # Not a built-in, run as regular crew command
         *)
-          dokku $line || true
+          crew $line || true
       esac
 
     done
@@ -48,12 +48,12 @@ case "$1" in
 
   help | shell:help)
     cat && cat<<EOF
-    shell                                                      Spawn dokku shell
+    shell                                                      Spawn crew shell
 EOF
     ;;
 
   *)
-    exit $DOKKU_NOT_IMPLEMENTED_EXIT
+    exit $CREW_NOT_IMPLEMENTED_EXIT
     ;;
 
 esac

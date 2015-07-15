@@ -1,12 +1,6 @@
-BUILDSTEP_DESCRIPTION = 'Buildstep uses Docker and Buildpacks to build applications like Heroku'
-BUILDSTEP_REPO_NAME ?= progrium/buildstep
-BUILDSTEP_VERSION ?= 0.0.2
-BUILDSTEP_ARCHITECTURE = amd64
-BUILDSTEP_PACKAGE_NAME = buildstep_$(BUILDSTEP_VERSION)_$(BUILDSTEP_ARCHITECTURE).deb
-
-DOKKU_DESCRIPTION = 'Docker powered mini-Heroku in around 100 lines of Bash'
-DOKKU_REPO_NAME ?= progrium/dokku
-DOKKU_ARCHITECTURE = amd64
+CREW_DESCRIPTION = 'Docker powered mini-Heroku in around 100 lines of Bash'
+CREW_REPO_NAME ?= progrium/crew
+CREW_ARCHITECTURE = amd64
 
 PLUGINHOOK_DESCRIPTION = 'Simple dispatcher and protocol for shell-based plugins, an improvement to hook scripts'
 PLUGINHOOK_REPO_NAME ?= progrium/pluginhook
@@ -26,7 +20,7 @@ GOROOT = /usr/lib/go
 GOBIN = /usr/bin/go
 GOPATH = /home/vagrant/gocode
 
-.PHONY: install-from-deb deb-all deb-buildstep deb-dokku deb-gems deb-pluginhook deb-setup deb-sshcommand
+.PHONY: install-from-deb deb-all deb-crew deb-gems deb-pluginhook deb-setup deb-sshcommand
 
 install-from-deb:
 	echo "--> Initial apt-get update"
@@ -36,12 +30,12 @@ install-from-deb:
 	echo "--> Installing docker gpg key"
 	curl -sSL https://get.docker.com/gpg | apt-key add -
 
-	echo "--> Installing dokku gpg key"
+	echo "--> Installing crew gpg key"
 	curl --silent https://packagecloud.io/gpg.key 2> /dev/null | apt-key add - 2>&1 >/dev/null
 
 	echo "--> Setting up apt repositories"
 	echo "deb http://get.docker.io/ubuntu docker main" > /etc/apt/sources.list.d/docker.list
-	echo "deb https://packagecloud.io/dokku/dokku/ubuntu/ trusty main" > /etc/apt/sources.list.d/dokku.list
+	echo "deb https://packagecloud.io/crew/crew/ubuntu/ trusty main" > /etc/apt/sources.list.d/crew.list
 
 	echo "--> Running apt-get update"
 	sudo apt-get update > /dev/null
@@ -49,12 +43,12 @@ install-from-deb:
 	echo "--> Installing pre-requisites"
 	sudo apt-get install -y linux-image-extra-`uname -r`
 
-	echo "--> Installing dokku"
-	sudo apt-get install -y dokku
+	echo "--> Installing crew"
+	sudo apt-get install -y crew
 
 	echo "--> Done!"
 
-deb-all: deb-buildstep deb-dokku deb-gems deb-pluginhook deb-sshcommand
+deb-all: deb-crew deb-gems deb-pluginhook deb-sshcommand
 	mv /tmp/*.deb .
 	echo "Done"
 
@@ -65,55 +59,28 @@ deb-setup:
 	command -v fpm > /dev/null || sudo gem install fpm --no-ri --no-rdoc
 	ssh -o StrictHostKeyChecking=no git@github.com || true
 
-deb-buildstep: deb-setup
-	rm -rf /tmp/tmp /tmp/build $(BUILDSTEP_PACKAGE_NAME)
-	mkdir -p /tmp/tmp /tmp/build
-
-	echo "-> Creating deb files"
-	echo "#!/usr/bin/env bash" >> /tmp/tmp/post-install
-	echo "sleep 5" >> /tmp/tmp/post-install
-	echo "count=\`sudo docker images | grep progrium/buildstep | wc -l\`" >> /tmp/tmp/post-install
-	echo 'if [ "$$count" -ne 0 ]; then' >> /tmp/tmp/post-install
-	echo "  echo 'Removing old buildstep image'" >> /tmp/tmp/post-install
-	echo "  sudo docker rmi progrium/buildstep" >> /tmp/tmp/post-install
-	echo "fi" >> /tmp/tmp/post-install
-	echo "echo 'Importing buildstep into docker (around 5 minutes)'" >> /tmp/tmp/post-install
-	echo "sudo docker build -t progrium/buildstep /var/lib/buildstep 1> /dev/null" >> /tmp/tmp/post-install
-
-	echo "-> Cloning repository"
-	git clone -q "git@github.com:$(BUILDSTEP_REPO_NAME).git" /tmp/tmp/buildstep > /dev/null
-	rm -rf /tmp/tmp/buildstep/.git /tmp/tmp/buildstep/.gitignore
-
-	echo "-> Copying files into place"
-	mkdir -p "/tmp/build/var/lib"
-	cp -rf /tmp/tmp/buildstep /tmp/build/var/lib/buildstep
-
-	echo "-> Creating $(BUILDSTEP_PACKAGE_NAME)"
-	sudo fpm -t deb -s dir -C /tmp/build -n buildstep -v $(BUILDSTEP_VERSION) -a $(BUILDSTEP_ARCHITECTURE) -p $(BUILDSTEP_PACKAGE_NAME) --deb-pre-depends 'lxc-docker-1.6.2' --after-install /tmp/tmp/post-install --url "https://github.com/$(BUILDSTEP_REPO_NAME)" --description $(BUILDSTEP_DESCRIPTION) --license 'MIT License' .
-	mv *.deb /tmp
-
-deb-dokku: deb-setup
-	rm -rf /tmp/tmp /tmp/build dokku_*_$(DOKKU_ARCHITECTURE).deb
+deb-crew: deb-setup
+	rm -rf /tmp/tmp /tmp/build crew_*_$(CREW_ARCHITECTURE).deb
 	mkdir -p /tmp/tmp /tmp/build
 
 	cp -r debian /tmp/build/DEBIAN
 	mkdir -p /tmp/build/usr/local/bin
-	mkdir -p /tmp/build/var/lib/dokku
+	mkdir -p /tmp/build/var/lib/crew
 	mkdir -p /tmp/build/usr/local/share/man/man1
-	mkdir -p /tmp/build/usr/local/share/dokku/contrib
+	mkdir -p /tmp/build/usr/local/share/crew/contrib
 
-	cp dokku /tmp/build/usr/local/bin
-	cp -r plugins /tmp/build/var/lib/dokku
-	find plugins/ -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | while read plugin; do touch /tmp/build/var/lib/dokku/plugins/$$plugin/.core; done
+	cp crew /tmp/build/usr/local/bin
+	cp -r plugins /tmp/build/var/lib/crew
+	find plugins/ -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | while read plugin; do touch /tmp/build/var/lib/crew/plugins/$$plugin/.core; done
 	$(MAKE) help2man
 	$(MAKE) addman
-	cp /usr/local/share/man/man1/dokku.1 /tmp/build/usr/local/share/man/man1/dokku.1
-	cp contrib/dokku-installer.rb /tmp/build/usr/local/share/dokku/contrib
-	git describe --tags > /tmp/build/var/lib/dokku/VERSION
-	cat /tmp/build/var/lib/dokku/VERSION | cut -d '-' -f 1 | cut -d 'v' -f 2 > /tmp/build/var/lib/dokku/STABLE_VERSION
-	git rev-parse HEAD > /tmp/build/var/lib/dokku/GIT_REV
-	sed -i "s/^Version: .*/Version: `cat /tmp/build/var/lib/dokku/STABLE_VERSION`/g" /tmp/build/DEBIAN/control
-	dpkg-deb --build /tmp/build "/vagrant/dokku_`cat /tmp/build/var/lib/dokku/STABLE_VERSION`_$(DOKKU_ARCHITECTURE).deb"
+	cp /usr/local/share/man/man1/crew.1 /tmp/build/usr/local/share/man/man1/crew.1
+	cp contrib/crew-installer.rb /tmp/build/usr/local/share/crew/contrib
+	git describe --tags > /tmp/build/var/lib/crew/VERSION
+	cat /tmp/build/var/lib/crew/VERSION | cut -d '-' -f 1 | cut -d 'v' -f 2 > /tmp/build/var/lib/crew/STABLE_VERSION
+	git rev-parse HEAD > /tmp/build/var/lib/crew/GIT_REV
+	sed -i "s/^Version: .*/Version: `cat /tmp/build/var/lib/crew/STABLE_VERSION`/g" /tmp/build/DEBIAN/control
+	dpkg-deb --build /tmp/build "/vagrant/crew_`cat /tmp/build/var/lib/crew/STABLE_VERSION`_$(CREW_ARCHITECTURE).deb"
 	mv *.deb /tmp
 
 deb-gems: deb-setup

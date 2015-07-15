@@ -32,7 +32,7 @@ example:
 	  ATTEMPTS=10  # attempt checks 10 times
 
 # Example: Successful Rails Deployment
-In this example, a rails applicaiton is successfully deployed to dokku.  The initial round of checks fails while the server is starting, but once it starts they succeed and the deployment is successful.
+In this example, a rails applicaiton is successfully deployed to crew.  The initial round of checks fails while the server is starting, but once it starts they succeed and the deployment is successful.
 ATTEMPTS is set to 6, but the third attempt succeeds.
 
 ## CHECKS file
@@ -50,7 +50,7 @@ ATTEMPTS=6
 > Note: The output has been trimmed for brevity
 
 ````
-git push dokku master
+git push crew master
 
 -----> Cleaning up...
 -----> Building myapp from buildstep...
@@ -92,13 +92,13 @@ curl: (7) Failed to connect to 172.17.0.155 port 5000: Connection refused
        Listening on 0.0.0.0:5000, CTRL+C to stop
 =====> end myapp container output
 -----> Running post-deploy
------> Configuring myapp.dokku.example.com...
+-----> Configuring myapp.crew.example.com...
 -----> Creating http nginx.conf
 -----> Running nginx-pre-reload
        Reloading nginx
 -----> Shutting down old container in 60 seconds
 =====> Application deployed:
-       http://myapp.dokku.example.com
+       http://myapp.crew.example.com
 ````
 
 # Example: Failing Rails Deployment
@@ -121,7 +121,7 @@ ATTEMPTS=6
 > Note: The output has been trimmed for brevity
 
 ````
-git push dokku master
+git push crew master
 
 -----> Cleaning up...
 -----> Building myapp from buildstep...
@@ -196,8 +196,8 @@ Could not start due to 1 failed checks.
          vendor/bundle/ruby/2.0.0/gems/activerecord-4.2.0/lib/active_record/connection_adapters/postgresql_adapter.rb:44:in `new'
          vendor/bundle/ruby/2.0.0/gems/activerecord-4.2.0/lib/active_record/connection_adapters/postgresql_adapter.rb:44:in `postgresql_connection
 =====> end myapp container output
-/usr/local/bin/dokku: line 49: 23409 Killed                  dokku deploy "$APP"
-To dokku@dokku.example.com:myapp
- ! [remote rejected] dokku -> master (pre-receive hook declined)
-error: failed to push some refs to 'dokku@dokku.example.com:myapp'
+/usr/local/bin/crew: line 49: 23409 Killed                  crew deploy "$APP"
+To crew@crew.example.com:myapp
+ ! [remote rejected] crew -> master (pre-receive hook declined)
+error: failed to push some refs to 'crew@crew.example.com:myapp'
 ````

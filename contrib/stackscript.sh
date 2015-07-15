@@ -1,6 +1,6 @@
 #!/bin/bash
-# <UDF name="hostname" default="" label="Hostname for dokku instance" example="example.com">
-# <UDF name="ssh_key" default="" label="Public SSH Key for root user" example="Sets the root user's public ssh key, which is also automatically imported into the dokku installer">
+# <UDF name="hostname" default="" label="Hostname for crew instance" example="example.com">
+# <UDF name="ssh_key" default="" label="Public SSH Key for root user" example="Sets the root user's public ssh key, which is also automatically imported into the crew installer">
 # <UDF name="notify_email" default="" Label="Send Finish Notification To" example="Email address to send notification to when finished." />
 
 function logit {
@@ -67,12 +67,12 @@ function notify_install_via_email {
     logit "Sending notification email to ${NOTIFY_EMAIL}"
     /usr/sbin/sendmail "${NOTIFY_EMAIL}" <<EOD
 To: ${NOTIFY_EMAIL}
-Subject: Dokku installation is complete
-From: Dokku StackScript <no-reply@${HOSTNAME}>
+Subject: Crew installation is complete
+From: Crew StackScript <no-reply@${HOSTNAME}>
 
-Your Dokku installation is complete and now ready to be configured: http://$(system_primary_ip) . Please visit this url to complete the setup of your Dokku instance.
+Your Crew installation is complete and now ready to be configured: http://$(system_primary_ip) . Please visit this url to complete the setup of your Crew instance.
 
-Enjoy using Dokku!
+Enjoy using Crew!
 EOD
   fi
 }
@@ -82,8 +82,8 @@ function notify_restart_via_email {
     logit "Sending notification email to ${NOTIFY_EMAIL} of required restart"
     /usr/sbin/sendmail "${NOTIFY_EMAIL}" <<EOD
 To: ${NOTIFY_EMAIL}
-Subject: Dokku Linode instance must be restarted
-From: Dokku StackScript <no-reply@${HOSTNAME}>
+Subject: Crew Linode instance must be restarted
+From: Crew StackScript <no-reply@${HOSTNAME}>
 
 The following linode instance must be restarted:
 
@@ -98,7 +98,7 @@ Then click "Edit" next to the selected configuration profile and make the follow
 - Change the "Kernel" option to the current "pv-grub" release
 - Set the "Xenify Distro" option to "no"
 
-Then save your changes. Next, reboot the instance from the Linode Dashboard. You'll receive an email once the instance is available to continue the dokku installation.
+Then save your changes. Next, reboot the instance from the Linode Dashboard. You'll receive an email once the instance is available to continue the crew installation.
 EOD
   fi
 }
@@ -123,7 +123,7 @@ modprobe aufs >> /root/setup_linode.txt 2>&1
 
 sudo apt-get install -y apparmor cgroup-lite >> /root/setup_linode.txt 2>&1
 
-sudo apt-get install -y dokku >> /root/setup_linode.txt 2>&1
+sudo apt-get install -y crew >> /root/setup_linode.txt 2>&1
 
 # Clean up this script so it only runs once
 rm -f /etc/rc.local
@@ -139,7 +139,7 @@ function install_prerequisites {
   logit "Installing docker gpg key"
   curl -sSL https://get.docker.com/gpg 2> /dev/null | apt-key add - > /dev/null 2>&1
 
-  logit "Installing dokku gpg key"
+  logit "Installing crew gpg key"
   curl -sSL https://packagecloud.io/gpg.key 2> /dev/null | apt-key add - > /dev/null 2>&1
 
   logit "Running apt-get update"
@@ -150,18 +150,18 @@ function install_prerequisites {
 
   logit "Setting up apt repositories"
   echo "deb http://get.docker.io/ubuntu docker main" > /etc/apt/sources.list.d/docker.list
-  echo "deb https://packagecloud.io/dokku/dokku/ubuntu/ trusty main" > /etc/apt/sources.list.d/dokku.list
+  echo "deb https://packagecloud.io/crew/crew/ubuntu/ trusty main" > /etc/apt/sources.list.d/crew.list
 
   logit "Running apt-get update"
   sudo apt-get update > /dev/null
 }
 
-function install_dokku {
+function install_crew {
   logit "Installing pre-requisites"
   sudo apt-get install -qq -y linux-image-extra-"$(uname -r)" > /dev/null 2>&1
 
-  logit "Installing dokku"
-  sudo apt-get install -qq -y dokku > /dev/null 2>&1
+  logit "Installing crew"
+  sudo apt-get install -qq -y crew > /dev/null 2>&1
 
   logit "Done!"
 }
@@ -178,6 +178,6 @@ if [ -n "$LINODE_ID" ]; then
   setup_linode
   notify_restart_via_email
 else
-  install_dokku
+  install_crew
   notify_install_via_email
 fi

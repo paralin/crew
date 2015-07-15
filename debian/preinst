@@ -5,25 +5,25 @@ set -e
 
 case "$1" in
   install)
-    db_get "dokku/web_config"
+    db_get "crew/web_config"
     if [ "$RET" = "true" ]; then
-      INIT_CONF="/etc/init/dokku-installer.conf"
-      NGINX_CONF="/etc/nginx/conf.d/dokku-installer.conf"
+      INIT_CONF="/etc/init/crew-installer.conf"
+      NGINX_CONF="/etc/nginx/conf.d/crew-installer.conf"
 
       rm -f $INIT_CONF
       touch $INIT_CONF
       echo 'start on runlevel [2345]' >> $INIT_CONF
-      echo 'exec /usr/local/share/dokku/contrib/dokku-installer.rb selfdestruct' >> $INIT_CONF
+      echo 'exec /usr/local/share/crew/contrib/crew-installer.rb selfdestruct' >> $INIT_CONF
 
       rm -f $NGINX_CONF
       touch $NGINX_CONF
 
       {
-        echo 'upstream dokku-installer { server 127.0.0.1:2000; }'
+        echo 'upstream crew-installer { server 127.0.0.1:2000; }'
         echo 'server {'
         echo '  listen      80;'
         echo '  location    / {'
-        echo '    proxy_pass  http://dokku-installer;'
+        echo '    proxy_pass  http://crew-installer;'
         echo '  }'
         echo '}'
       } >> $NGINX_CONF
@@ -34,11 +34,11 @@ case "$1" in
     fi
 
     if [ -z "${DEBCONF_RECONFIGURE}" ]; then
-      db_get "dokku/key_file"
+      db_get "crew/key_file"
       if [ ! -f "$RET" ]; then
           echo "Error: keyfile '$RET' not found."
           echo "       you can enter a new keyfile path when you restart the installation."
-          db_reset "dokku/key_file"
+          db_reset "crew/key_file"
           exit 1
       fi
     fi

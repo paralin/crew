@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
 source "$(dirname $0)/../common/functions"
 
-[[ ! "$DOKKU_EVENTS" ]] || dokku_log_pluginhook_call "$(basename $0)" "$@"
+[[ ! "$CREW_EVENTS" ]] || crew_log_pluginhook_call "$(basename $0)" "$@"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
 
 STDIN=$(cat)
 APP="$1"
@@ -17,7 +17,7 @@ case "$0" in
 esac
 
 FILE_PREFIX="DOCKER_OPTIONS_"
-PHASE_FILE_PATH="${DOKKU_ROOT}/${APP}/${FILE_PREFIX}${PHASE}"
+PHASE_FILE_PATH="${CREW_ROOT}/${APP}/${FILE_PREFIX}${PHASE}"
 
 output=""
 

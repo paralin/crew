@@ -1,78 +1,78 @@
 # Clients
 
-Given the constraints, running dokku commands remotely via SSH is fine. For certain configurations, the extra complication of manually invoking ssh can be a burden.
+Given the constraints, running crew commands remotely via SSH is fine. For certain configurations, the extra complication of manually invoking ssh can be a burden.
 
-While dokku does not yet have an official client, there are a multitude of ways in which you can interact with your dokku installation. The easiest is to use the **bash** client, though you may wish to use another.
+While crew does not yet have an official client, there are a multitude of ways in which you can interact with your crew installation. The easiest is to use the **bash** client, though you may wish to use another.
 
-## (bash) `dokku_client.sh`
+## (bash) `crew_client.sh`
 
-Of all methods, this is the *most* official method of interacting with your dokku installation. It is a bash script that interacts with a remote dokku installation via ssh. It is available in `contrib/dokku_client.sh` in the root of the dokku repository.
+Of all methods, this is the *most* official method of interacting with your crew installation. It is a bash script that interacts with a remote crew installation via ssh. It is available in `contrib/crew_client.sh` in the root of the crew repository.
 
-To install, simply clone the dokku repository down and add the `dokku` alias pointing at the script:
+To install, simply clone the crew repository down and add the `crew` alias pointing at the script:
 
 ```shell
-git clone git@github.com:progrium/dokku.git ~/.dokku
+git clone git@github.com:progrium/crew.git ~/.crew
 
 # add the following to either your
 # .bashrc, .bash_profile, or .profile file
-alias dokku='$HOME/.dokku/contrib/dokku_client.sh'
+alias crew='$HOME/.crew/contrib/crew_client.sh'
 ```
 
-Configure the `DOKKU_HOST` environment variable or run `dokku` from a repository with a git remote named dokku pointed at your dokku host in order to use the script as normal.
+Configure the `CREW_HOST` environment variable or run `crew` from a repository with a git remote named crew pointed at your crew host in order to use the script as normal.
 
-## (nodejs) dokku-toolbelt
+## (nodejs) crew-toolbelt
 
-Dokku-toolbelt is a node-based cli wrapper that proxies requests to the dokku command running on remote hosts. You can install it via the following shell command (assuming you have nodejs and npm installed):
+Crew-toolbelt is a node-based cli wrapper that proxies requests to the crew command running on remote hosts. You can install it via the following shell command (assuming you have nodejs and npm installed):
 
 ```shell
-npm install -g dokku-toolbelt
+npm install -g crew-toolbelt
 ```
 
-See [documentation here](https://www.npmjs.com/package/dokku-toolbelt) for more information.
+See [documentation here](https://www.npmjs.com/package/crew-toolbelt) for more information.
 
-## (python) dokku-client
+## (python) crew-client
 
-dokku-client is an extensible python-based cli wrapper for remote dokku hosts.  You can install it via the following shell command (assuming you have python and pip installed):
+crew-client is an extensible python-based cli wrapper for remote crew hosts.  You can install it via the following shell command (assuming you have python and pip installed):
 
 ```shell
-pip install dokku-client
+pip install crew-client
 ```
 
-See [documentation here](https://github.com/adamcharnock/dokku-client) for more information.
+See [documentation here](https://github.com/adamcharnock/crew-client) for more information.
 
-## (ruby) Dokku CLI
+## (ruby) Crew CLI
 
-Dokku CLI is a rubygem that acts as a client for your dokku installation. You can install it via the following shell command (assuming you have ruby and rubygems installed):
+Crew CLI is a rubygem that acts as a client for your crew installation. You can install it via the following shell command (assuming you have ruby and rubygems installed):
 
 ```shell
-gem install dokku-cli
+gem install crew-cli
 ```
 
-See [documentation here](https://github.com/SebastianSzturo/dokku-cli) for more information.
+See [documentation here](https://github.com/SebastianSzturo/crew-cli) for more information.
 
-## (ruby) DokkuClient
+## (ruby) CrewClient
 
-DokkuClient is another rubygem that acts as a client for your dokku installation with built-in support for certain external plugins. You can install it via the following shell command (assuming you have ruby and rubygems installed):
+CrewClient is another rubygem that acts as a client for your crew installation with built-in support for certain external plugins. You can install it via the following shell command (assuming you have ruby and rubygems installed):
 
 ```shell
-gem install dokku_client
+gem install crew_client
 ```
 
-See [documentation here](https://github.com/netguru/dokku_client) for more information.
+See [documentation here](https://github.com/netguru/crew_client) for more information.
 
-## (ruby) Dokkufy
+## (ruby) Crewfy
 
-Dokkufy is a rubygem that handles automation of certain tasks, such as dokku setup, plugin installation, etc. You can install it via the following shell command (assuming you have ruby and rubygems installed):
+Crewfy is a rubygem that handles automation of certain tasks, such as crew setup, plugin installation, etc. You can install it via the following shell command (assuming you have ruby and rubygems installed):
 
 ```shell
-gem install dokkufy
+gem install crewfy
 ```
 
-See [documentation here](https://github.com/cbetta/dokkufy) for more information.
+See [documentation here](https://github.com/cbetta/crewfy) for more information.
 
 ## (ruby) Dockland
 
-Dockland is a rubygem that acts as a client for your dokku installation. You can install it via the following shell command (assuming you have ruby and rubygems installed):
+Dockland is a rubygem that acts as a client for your crew installation. You can install it via the following shell command (assuming you have ruby and rubygems installed):
 
 ```shell
 gem install dockland

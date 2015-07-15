@@ -1,6 +1,6 @@
 # Installing on Linode
 
-Due to how Linode installs custom kernels, Linode instances *require* a reboot before they can fully work with Docker/Dokku. The Official Dokku StackScript should take care of this process for you, and will email notify you when the instance is running and you can proceed with installation.
+Due to how Linode installs custom kernels, Linode instances *require* a reboot before they can fully work with Docker/Crew. The Official Crew StackScript should take care of this process for you, and will email notify you when the instance is running and you can proceed with installation.
 
 ## Using StackScript
 
@@ -29,8 +29,8 @@ Deploy using the following (experimental) Official StackScript:
 
     modprobe aufs
     ```
-* After this, you can install dokku the default way:
+* After this, you can install crew the default way:
 
     ```shell
-    wget -qO- https://raw.github.com/progrium/dokku/master/bootstrap.sh | sudo bash
+    wget -qO- https://raw.github.com/progrium/crew/master/bootstrap.sh | sudo bash
     ```

@@ -37,7 +37,7 @@ echo "-----> Connecting and running bootstrap script..."
 ssh -o "StrictHostKeyChecking=no" ubuntu@$PUBLIC_IP "HOSTNAME=\$PUBLIC_IP sudo bash" < ../bootstrap.sh 2>&1 | indent
 echo "-----> Installing SSH public keys..."
 PUBLIC_KEY=$(< ~/.ssh/id_rsa.pub)
-echo $PUBLIC_KEY | ssh -o "StrictHostKeyChecking=no" ubuntu@$PUBLIC_IP "sudo sshcommand acl-add dokku test" > /dev/null
+echo $PUBLIC_KEY | ssh -o "StrictHostKeyChecking=no" ubuntu@$PUBLIC_IP "sudo sshcommand acl-add crew test" > /dev/null
 for app_path in apps/*; do
   app=$(basename $app_path)
   echo "-----> Running test deploy of $app..."

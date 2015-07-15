@@ -3,7 +3,7 @@ set -e
 
 . /usr/share/debconf/confmodule
 
-readonly DOKKU_ROOT="${DOKKU_ROOT:-/home/dokku}"
+readonly CREW_ROOT="${CREW_ROOT:-/home/crew}"
 
 case "$1" in
   abort-upgrade|abort-remove|abort-deconfigure)
@@ -12,37 +12,37 @@ case "$1" in
   configure)
     mandb
     [ ! -x /usr/bin/docker.io ] || ln -sf /usr/bin/docker.io /usr/local/bin/docker
-    modprobe aufs || echo "WARNING: Restart server to finish installing dokku!"
-    sshcommand create dokku /usr/local/bin/dokku
+    modprobe aufs || echo "WARNING: Restart server to finish installing crew!"
+    sshcommand create crew /usr/local/bin/crew
     egrep -i "^docker" /etc/group || groupadd docker
-    usermod -aG docker dokku
-    dokku plugins-install
-    rm -f /home/dokku/VERSION
-    cp /var/lib/dokku/STABLE_VERSION /home/dokku/VERSION
+    usermod -aG docker crew
+    crew plugins-install
+    rm -f /home/crew/VERSION
+    cp /var/lib/crew/STABLE_VERSION /home/crew/VERSION
 
-    if [ -f /etc/init/dokku-installer.conf ] && service dokku-installer status 2> /dev/null | grep waiting; then
-        sudo service dokku-installer start
+    if [ -f /etc/init/crew-installer.conf ] && service crew-installer status 2> /dev/null | grep waiting; then
+        sudo service crew-installer start
     fi
 
-    db_get "dokku/web_config"
+    db_get "crew/web_config"
     if [ "$RET" = "true" ]; then
       exit 0
     fi
 
-    db_get "dokku/vhost_enable"
+    db_get "crew/vhost_enable"
     if [ "$RET" = "true" ]; then
-        db_get "dokku/hostname" 
-        echo "$RET" > "${DOKKU_ROOT}/VHOST"
+        db_get "crew/hostname" 
+        echo "$RET" > "${CREW_ROOT}/VHOST"
     else
-        rm -f "${DOKKU_ROOT}/VHOST"
+        rm -f "${CREW_ROOT}/VHOST"
     fi
 
-    db_get "dokku/hostname"
-    echo "$RET" > "${DOKKU_ROOT}/HOSTNAME"
+    db_get "crew/hostname"
+    echo "$RET" > "${CREW_ROOT}/HOSTNAME"
 
     if [ -z "${DEBCONF_RECONFIGURE}" ]; then
-      db_get "dokku/key_file"
-      sshcommand acl-add dokku default < "$RET"
+      db_get "crew/key_file"
+      sshcommand acl-add crew default < "$RET"
     fi
     ;;
 

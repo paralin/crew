@@ -1,6 +1,6 @@
 # Process/Container management
 
-Dokku supports rudimentary process (really container) management via the `ps` plugin.
+Crew supports rudimentary process (really container) management via the `ps` plugin.
 
 ```
 ps <app>                                        List processes running in app container(s)
@@ -13,16 +13,16 @@ ps:start <app>                                  Start app container(s)
 ps:stop <app>                                   Stop app container(s)
 ```
 
-*NOTE*: As of v0.3.14, `dokku deploy:all` in now deprecated by `ps:restartall` and will be removed in a future version.
+*NOTE*: As of v0.3.14, `crew deploy:all` in now deprecated by `ps:restartall` and will be removed in a future version.
 
 
 ## Scaling
 
-Dokku allows you to run multiple process types at different container counts. For example, if you had an app that contained 1 web app listener and 1 background job processor, dokku can, spin up 1 container for each process type defined in the Procfile. By default we will only start the web process. However, if you wanted 2 job processors running simultaneously, you can modify this behavior in a few ways.
+Crew allows you to run multiple process types at different container counts. For example, if you had an app that contained 1 web app listener and 1 background job processor, crew can, spin up 1 container for each process type defined in the Procfile. By default we will only start the web process. However, if you wanted 2 job processors running simultaneously, you can modify this behavior in a few ways.
 
-## Include a DOKKU_SCALE file in your repo
+## Include a CREW_SCALE file in your repo
 
-Dokku expects this file to contain one line for every process defined in your Procfile. Example:
+Crew expects this file to contain one line for every process defined in your Procfile. Example:
 ```
 web=1
 worker=2
@@ -31,9 +31,9 @@ worker=2
 
 ## Use the ps:scale command. Example:
 ```
-dokku ps:scale app_name web=1 worker=2
+crew ps:scale app_name web=1 worker=2
 ```
-*NOTE*: Dokku will always use the DOKKU_SCALE file that ships with the repo to override any local settings.
+*NOTE*: Crew will always use the CREW_SCALE file that ships with the repo to override any local settings.
 
 
 ## The web proctype

@@ -1,0 +1,245 @@
+#!/usr/bin/env bash
+set -eo pipefail
+shopt -s nullglob
+
+export CREW_DISTRO=${CREW_DISTRO:="ubuntu"}
+export CREW_ROOT=${CREW_ROOT:=~crew}
+
+export PLUGIN_PATH=${PLUGIN_PATH:="/var/lib/crew/plugins"}
+export CREW_NOT_IMPLEMENTED_EXIT=10
+export CREW_VALID_EXIT=0
+
+export CREW_LOGS_DIR=${CREW_LOGS_DIR:="/var/log/crew"}
+export CREW_EVENTS_LOGFILE=${CREW_EVENTS_LOGFILE:="$CREW_LOGS_DIR/events.log"}
+
+source "$PLUGIN_PATH/common/functions"
+
+[[ -f $CREW_ROOT/crewrc ]] && source $CREW_ROOT/crewrc
+[[ -d $CREW_ROOT/.crewrc ]] && for f in $CREW_ROOT/.crewrc/*; do source $f; done
+
+[[ $CREW_TRACE ]] && set -x
+
+parse_args "$@"
+args=("$@")
+if [[ "${args[0]}" =~ ^--.* ]]; then
+  for arg in "$@"; do
+    if [[ "$arg" =~ ^--.* ]];then
+      shift 1
+    else
+      break
+    fi
+  done
+fi
+! has_tty && CREW_QUIET_OUTPUT=1
+
+if [[ $(id -un) != "crew" && $1 != plugins-install* && $1 != "plugins-update" ]]; then
+  sudo -u crew -E -H $0 "$@"
+  exit
+fi
+
+if [[ -n "$SSH_ORIGINAL_COMMAND" ]]; then
+  export -n SSH_ORIGINAL_COMMAND
+  if [[ $1 =~ config-* ]] || [[ $1 =~ docker-options* ]];then
+    xargs $0 <<<$SSH_ORIGINAL_COMMAND
+    exit $?
+  else
+    $0 $SSH_ORIGINAL_COMMAND
+    exit $?
+  fi
+fi
+
+case "$1" in
+  receive)
+    APP="$2"; IMAGE="crew/$APP"; IMAGE_SOURCE_TYPE="$3"; TMP_WORK_DIR="$4"
+    crew_log_info1 "Cleaning up..."
+    crew cleanup
+    crew_log_info1 "Building $APP from $IMAGE_SOURCE_TYPE..."
+    crew build "$APP" "$IMAGE_SOURCE_TYPE" "$TMP_WORK_DIR"
+    crew_log_info1 "Releasing $APP..."
+    crew release "$APP" "$IMAGE_SOURCE_TYPE"
+    crew_log_info1 "Deploying $APP..."
+    crew deploy "$APP"
+    crew_log_info2 "Application deployed!"
+    ;;
+
+  deploy)
+    [[ -z $2 ]] && crew_log_fail "Please specify an app to deploy"
+    APP="$2"; IMAGE="crew/$APP"
+    verify_app_name "$APP"
+
+    pluginhook pre-deploy $APP
+
+    CREW_SCALE_FILE="$CREW_ROOT/$APP/CREW_SCALE"
+    oldids=$(get_app_container_ids $APP)
+
+    while read line || [ -n "$line" ]
+    do
+      PROC_TYPE=${line%%=*}
+      PROC_COUNT=${line#*=}
+      CONTAINER_INDEX=1
+
+      while [[ $CONTAINER_INDEX -le $PROC_COUNT ]];do
+        id=""; port=""; ipaddr=""
+        CREW_CONTAINER_ID_FILE="$CREW_ROOT/$APP/CONTAINER.$PROC_TYPE.$CONTAINER_INDEX"
+        CREW_IP_FILE="$CREW_ROOT/$APP/IP.$PROC_TYPE.$CONTAINER_INDEX"
+        CREW_PORT_FILE="$CREW_ROOT/$APP/PORT.$PROC_TYPE.$CONTAINER_INDEX"
+
+        # start the app
+        DOCKER_ARGS=$(: | pluginhook docker-args $APP deploy)
+        DOCKER_ARGS+=" -e DYNO=$PROC_TYPE "
+        DOCKER_ARGS+=$(: | pluginhook docker-args-deploy $APP)
+        BIND_EXTERNAL=$(pluginhook bind-external-ip $APP)
+
+        CREW_DOCKERFILE_PORT=$(crew config:get $APP CREW_DOCKERFILE_PORT || true)
+        START_CMD=$(crew config:get $APP CREW_DOCKERFILE_START_CMD || $START_CMD)
+
+        if [[ "$BIND_EXTERNAL" = "false" ]] && [[ "$PROC_TYPE" == "web" ]];then
+          port=${CREW_DOCKERFILE_PORT:=5000}
+          id=$(docker run -d -e PORT=$port $DOCKER_ARGS $IMAGE $START_CMD)
+          ipaddr=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $id)
+        elif [[ "$BIND_EXTERNAL" = "true" ]] && [[ "$PROC_TYPE" == "web" ]];then
+          id=$(docker run -d -p 5000 -e PORT=5000 $DOCKER_ARGS $IMAGE $START_CMD)
+          port=$(docker port $id 5000 | sed 's/[0-9.]*://')
+          ipaddr=127.0.0.1
+        elif [[ "$PROC_TYPE" != "web" ]];then
+          id=$(docker run -d $DOCKER_ARGS $IMAGE $START_CMD)
+        fi
+
+        # if we can't post-deploy successfully, kill new container
+        kill_new() {
+          docker inspect $id &> /dev/null && docker stop $id > /dev/null && docker kill $id > /dev/null
+          trap - INT TERM EXIT
+          kill -9 $$
+        }
+
+        CREW_APP_SKIP_ALL_CHECKS=$(crew config:get $APP CREW_SKIP_ALL_CHECKS || true)
+        CREW_APP_SKIP_DEFAULT_CHECKS=$(crew config:get $APP CREW_SKIP_DEFAULT_CHECKS || true)
+        CREW_GLOBAL_SKIP_ALL_CHECKS=$(crew config:get --global CREW_SKIP_ALL_CHECKS || true)
+        CREW_GLOBAL_SKIP_DEFAULT_CHECKS=$(crew config:get --global CREW_SKIP_DEFAULT_CHECKS || true)
+
+        CREW_SKIP_ALL_CHECKS=${CREW_APP_SKIP_ALL_CHECKS:="$CREW_GLOBAL_SKIP_ALL_CHECKS"}
+        CREW_SKIP_DEFAULT_CHECKS=${CREW_APP_SKIP_DEFAULT_CHECKS:="$CREW_GLOBAL_SKIP_DEFAULT_CHECKS"}
+
+        if [[ "$CREW_SKIP_ALL_CHECKS" = "true" ]]; then
+          crew_log_info1 "Skipping pre-flight checks"
+        else
+          trap kill_new INT TERM EXIT
+          crew_log_info1 "Running pre-flight checks"
+          pluginhook check-deploy  $APP $id $PROC_TYPE $port $ipaddr
+          trap -        INT TERM EXIT
+        fi
+
+        # now using the new container
+        [[ -n "$id" ]] && echo $id > "$CREW_CONTAINER_ID_FILE"
+        [[ -n "$ipaddr" ]] && echo $ipaddr > "$CREW_IP_FILE"
+        [[ -n "$port" ]] && echo $port > "$CREW_PORT_FILE"
+        [[ -n "$port" ]] && echo "http://$(< "$CREW_ROOT/HOSTNAME"):$port" > "$CREW_ROOT/$APP/URL"
+
+        # cleanup pre-migration files
+        rm -f $CREW_ROOT/$APP/CONTAINER $CREW_ROOT/$APP/IP $CREW_ROOT/$APP/PORT
+
+        CONTAINER_INDEX=$(( CONTAINER_INDEX + 1 ))
+      done
+      # cleanup when we scale down
+      if [[ "$PROC_COUNT" == 0 ]]; then
+        CONTAINER_IDX_OFFSET=0
+      else
+        CONTAINER_IDX_OFFSET=$((PROC_COUNT + 1))
+      fi
+      find $CREW_ROOT/$APP -maxdepth 1 -name "CONTAINER.$PROC_TYPE.*" | sort -t . -k 4 -n | tail -n +$CONTAINER_IDX_OFFSET | xargs rm -f
+      find $CREW_ROOT/$APP -maxdepth 1 -name "IP.$PROC_TYPE.*" | sort -t . -k 4 -n | tail -n +$CONTAINER_IDX_OFFSET | xargs rm -f
+      find $CREW_ROOT/$APP -maxdepth 1 -name "PORT.$PROC_TYPE.*" | sort -t . -k 4 -n | tail -n +$CONTAINER_IDX_OFFSET | xargs rm -f
+    done < "$CREW_SCALE_FILE"
+
+    crew_log_info1 "Running post-deploy"
+    pluginhook post-deploy $APP $port $ipaddr
+
+    # kill the old container
+    if [[ -n "$oldids" ]]; then
+      # Let the old container finish processing requests, before terminating it
+      WAIT="${CREW_WAIT_TO_RETIRE:-60}"
+      crew_log_info1 "Shutting down old containers in $WAIT seconds"
+      for oldid in $oldids; do
+        crew_log_info2 "$oldid"
+      done
+      (
+        exec >/dev/null 2>/dev/null </dev/null
+        trap '' INT HUP
+        sleep $WAIT
+        for oldid in $oldids; do
+          docker stop $oldid &> /dev/null
+          docker kill $oldid &> /dev/null  # force a kill as docker seems to not send SIGKILL as the docs would indicate
+        done
+      ) & disown -a
+      # Use trap since disown/nohup don't seem to keep child alive
+      # Give child process just enough time to set the traps
+      sleep 0.1
+    fi
+    ;;
+
+  cleanup)
+    # delete all non-running container
+    # shellcheck disable=SC2046
+    docker rm $(docker ps -a -f 'status=exited' -q) &> /dev/null || true
+    # delete unused images
+    # shellcheck disable=SC2046
+    docker rmi $(docker images -f 'dangling=true' -q) &> /dev/null &
+    ;;
+
+  plugins)
+    ls -1 -d $PLUGIN_PATH/*/
+    ;;
+
+  plugins-install)
+    pluginhook install
+    ;;
+
+  plugins-install-dependencies)
+    pluginhook dependencies
+    ;;
+
+  plugins-update)
+    pluginhook update
+    ;;
+
+  # DEPRECATED as of v0.3.14
+  deploy:all)
+      echo "*DEPRECATED* in v0.3.14: deploy:all will be removed in future versions"
+      crew ps:restartall
+    ;;
+
+  help|'')
+    echo "Usage: crew [--quiet|--trace|--rm-container|--rm|--force] COMMAND <app> [command-specific-options]"
+    echo ""
+    echo "Options:"
+
+    cat<<EOF | pluginhook commands help | sort
+    help                                                       Print the list of commands
+    plugins                                                    Print active plugins
+    plugins-install                                            Install active plugins
+    plugins-update                                             Update active plugins
+EOF
+    ;;
+
+  *)
+    implemented=0
+    for script in $PLUGIN_PATH/*/commands; do
+      set +e; $script "$@" ; exit_code=$? ; set -e
+      if [[ "$exit_code" -eq "$CREW_NOT_IMPLEMENTED_EXIT" ]]; then
+        continue
+      fi
+
+      implemented=1
+      if [[ "$exit_code" -ne "$CREW_VALID_EXIT" ]]; then
+        exit $exit_code
+      fi
+    done
+
+    if [[ "$implemented" -eq 0 ]]; then
+      crew_log_warn "\`$*\` is not a crew command."
+      crew_log_warn "See \`crew help\` for a list of available commands."
+      exit 1
+    fi
+    ;;
+
+esac

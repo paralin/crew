@@ -11,27 +11,27 @@ endif
 ci-dependencies: shellcheck bats
 
 setup-deploy-tests:
-	mkdir -p /home/dokku
-ifdef ENABLE_DOKKU_TRACE
+	mkdir -p /home/crew
+ifdef ENABLE_CREW_TRACE
 	echo "-----> Enabling tracing"
-	echo "export DOKKU_TRACE=1" >> /home/dokku/dokkurc
+	echo "export CREW_TRACE=1" >> /home/crew/crewrc
 endif
-	@echo "Setting dokku.me in /etc/hosts"
-	sudo /bin/bash -c "[[ `ping -c1 dokku.me > /dev/null 2>&1; echo $$?` -eq 0 ]] || echo \"127.0.0.1  dokku.me *.dokku.me www.test.app.dokku.me\" >> /etc/hosts"
+	@echo "Setting crew.me in /etc/hosts"
+	sudo /bin/bash -c "[[ `ping -c1 crew.me > /dev/null 2>&1; echo $$?` -eq 0 ]] || echo \"127.0.0.1  crew.me *.crew.me www.test.app.crew.me\" >> /etc/hosts"
 
 	@echo "-----> Generating keypair..."
 	mkdir -p /root/.ssh
-	rm -f /root/.ssh/dokku_test_rsa*
-	echo -e  "y\n" | ssh-keygen -f /root/.ssh/dokku_test_rsa -t rsa -N ''
-	chmod 600 /root/.ssh/dokku_test_rsa*
+	rm -f /root/.ssh/crew_test_rsa*
+	echo -e  "y\n" | ssh-keygen -f /root/.ssh/crew_test_rsa -t rsa -N ''
+	chmod 600 /root/.ssh/crew_test_rsa*
 
 	@echo "-----> Setting up ssh config..."
 ifneq ($(shell ls /root/.ssh/config > /dev/null 2>&1 ; echo $$?),0)
-	echo "Host dokku.me \\r\\n RequestTTY yes \\r\\n IdentityFile /root/.ssh/dokku_test_rsa" >> /root/.ssh/config
-	echo "Host 127.0.0.1 \\r\\n Port 22333 \\r\\n RequestTTY yes \\r\\n IdentityFile /root/.ssh/dokku_test_rsa" >> /root/.ssh/config
-else ifeq ($(shell grep dokku.me /root/.ssh/config),)
-	echo "Host dokku.me \\r\\n RequestTTY yes \\r\\n IdentityFile /root/.ssh/dokku_test_rsa" >> /root/.ssh/config
-	echo "Host 127.0.0.1 \\r\\n Port 22333 \\r\\n RequestTTY yes \\r\\n IdentityFile /root/.ssh/dokku_test_rsa" >> /root/.ssh/config
+	echo "Host crew.me \\r\\n RequestTTY yes \\r\\n IdentityFile /root/.ssh/crew_test_rsa" >> /root/.ssh/config
+	echo "Host 127.0.0.1 \\r\\n Port 22333 \\r\\n RequestTTY yes \\r\\n IdentityFile /root/.ssh/crew_test_rsa" >> /root/.ssh/config
+else ifeq ($(shell grep crew.me /root/.ssh/config),)
+	echo "Host crew.me \\r\\n RequestTTY yes \\r\\n IdentityFile /root/.ssh/crew_test_rsa" >> /root/.ssh/config
+	echo "Host 127.0.0.1 \\r\\n Port 22333 \\r\\n RequestTTY yes \\r\\n IdentityFile /root/.ssh/crew_test_rsa" >> /root/.ssh/config
 endif
 
 ifeq ($(shell grep 22333 /etc/ssh/sshd_config),)
@@ -40,16 +40,16 @@ ifeq ($(shell grep 22333 /etc/ssh/sshd_config),)
 endif
 
 	@echo "-----> Installing SSH public key..."
-	sudo sshcommand acl-remove dokku test
-	cat /root/.ssh/dokku_test_rsa.pub | sudo sshcommand acl-add dokku test
+	sudo sshcommand acl-remove crew test
+	cat /root/.ssh/crew_test_rsa.pub | sudo sshcommand acl-add crew test
 
 	@echo "-----> Intitial SSH connection to populate known_hosts..."
-	ssh -o StrictHostKeyChecking=no dokku@dokku.me help > /dev/null
-	ssh -o StrictHostKeyChecking=no dokku@127.0.0.1 help > /dev/null
+	ssh -o StrictHostKeyChecking=no crew@crew.me help > /dev/null
+	ssh -o StrictHostKeyChecking=no crew@127.0.0.1 help > /dev/null
 
-ifeq ($(shell grep dokku.me /home/dokku/VHOST 2>/dev/null),)
-	@echo "-----> Setting default VHOST to dokku.me..."
-	echo "dokku.me" > /home/dokku/VHOST
+ifeq ($(shell grep crew.me /home/crew/VHOST 2>/dev/null),)
+	@echo "-----> Setting default VHOST to crew.me..."
+	echo "crew.me" > /home/crew/VHOST
 endif
 
 bats:
@@ -64,8 +64,8 @@ lint:
 	# SC2143: Instead of [ -n $(foo | grep bar) ], use foo | grep -q bar - https://github.com/koalaman/shellcheck/wiki/SC2143
 	# SC2001: See if you can use ${variable//search/replace} instead. - https://github.com/koalaman/shellcheck/wiki/SC2001
 	@echo linting...
-	@$(QUIET) shellcheck -e SC2029 ./contrib/dokku_client.sh
-	@$(QUIET) find . -not -path '*/\.*' | xargs file | egrep "shell|bash" | grep -v directory | awk '{ print $$1 }' | sed 's/://g' | grep -v dokku_client.sh | xargs shellcheck -e SC2034,SC2086,SC2143,SC2001
+	@$(QUIET) shellcheck -e SC2029 ./contrib/crew_client.sh
+	@$(QUIET) find . -not -path '*/\.*' | xargs file | egrep "shell|bash" | grep -v directory | awk '{ print $$1 }' | sed 's/://g' | grep -v crew_client.sh | xargs shellcheck -e SC2034,SC2086,SC2143,SC2001
 
 unit-tests:
 	@echo running unit tests...
@@ -77,67 +77,67 @@ endif
 
 deploy-test-checks-root:
 	@echo deploying checks-root app...
-	cd tests && ./test_deploy ./apps/checks-root dokku.me '' true
+	cd tests && ./test_deploy ./apps/checks-root crew.me '' true
 
 deploy-test-clojure:
 	@echo deploying config app...
-	cd tests && ./test_deploy ./apps/clojure dokku.me
+	cd tests && ./test_deploy ./apps/clojure crew.me
 
 deploy-test-config:
 	@echo deploying config app...
-	cd tests && ./test_deploy ./apps/config dokku.me
+	cd tests && ./test_deploy ./apps/config crew.me
 
 deploy-test-dockerfile:
 	@echo deploying dockerfile app...
-	cd tests && ./test_deploy ./apps/dockerfile dokku.me
+	cd tests && ./test_deploy ./apps/dockerfile crew.me
 
 deploy-test-dockerfile-noexpose:
 	@echo deploying dockerfile-noexpose app...
-	cd tests && ./test_deploy ./apps/dockerfile-noexpose dokku.me
+	cd tests && ./test_deploy ./apps/dockerfile-noexpose crew.me
 
 deploy-test-gitsubmodules:
 	@echo deploying gitsubmodules app...
-	cd tests && ./test_deploy ./apps/gitsubmodules dokku.me
+	cd tests && ./test_deploy ./apps/gitsubmodules crew.me
 
 deploy-test-go:
 	@echo deploying go app...
-	cd tests && ./test_deploy ./apps/go dokku.me
+	cd tests && ./test_deploy ./apps/go crew.me
 
 deploy-test-java:
 	@echo deploying java app...
-	cd tests && ./test_deploy ./apps/java dokku.me
+	cd tests && ./test_deploy ./apps/java crew.me
 
 deploy-test-multi:
 	@echo deploying multi app...
-	cd tests && ./test_deploy ./apps/multi dokku.me
+	cd tests && ./test_deploy ./apps/multi crew.me
 
 deploy-test-nodejs-express:
 	@echo deploying nodejs-express app...
-	cd tests && ./test_deploy ./apps/nodejs-express dokku.me
+	cd tests && ./test_deploy ./apps/nodejs-express crew.me
 
 deploy-test-nodejs-express-noprocfile:
 	@echo deploying nodejs-express app with no Procfile...
-	cd tests && ./test_deploy ./apps/nodejs-express-noprocfile dokku.me
+	cd tests && ./test_deploy ./apps/nodejs-express-noprocfile crew.me
 
 deploy-test-php:
 	@echo deploying php app...
-	cd tests && ./test_deploy ./apps/php dokku.me
+	cd tests && ./test_deploy ./apps/php crew.me
 
 deploy-test-python-flask:
 	@echo deploying python-flask app...
-	cd tests && ./test_deploy ./apps/python-flask dokku.me
+	cd tests && ./test_deploy ./apps/python-flask crew.me
 
 deploy-test-ruby:
 	@echo deploying ruby app...
-	cd tests && ./test_deploy ./apps/ruby dokku.me
+	cd tests && ./test_deploy ./apps/ruby crew.me
 
 deploy-test-scala:
 	@echo deploying scala app...
-	cd tests && ./test_deploy ./apps/scala dokku.me
+	cd tests && ./test_deploy ./apps/scala crew.me
 
 deploy-test-static:
 	@echo deploying static app...
-	cd tests && ./test_deploy ./apps/static dokku.me
+	cd tests && ./test_deploy ./apps/static crew.me
 
 deploy-tests:
 	@echo running deploy tests...

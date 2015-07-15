@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
+source "$(dirname $0)/../common/functions"
+
+case "$1" in
+  build)
+    APP="$2"; IMAGE="crew/$APP"; IMAGE_SOURCE_TYPE="$3"; TMP_WORK_DIR="$4"
+    CACHE_DIR="$CREW_ROOT/$APP/cache"
+
+    [[ -f "$CREW_ROOT/$APP/ENV" ]] && source "$CREW_ROOT/$APP/ENV"
+    pushd "$TMP_WORK_DIR" &> /dev/null
+
+    case "$IMAGE_SOURCE_TYPE" in
+      dockerfile)
+        # extract first port from Dockerfile
+        DOCKERFILE_PORT=$(get_dockerfile_exposed_port Dockerfile)
+        [[ -n "$DOCKERFILE_PORT" ]] && crew config:set-norestart $APP CREW_DOCKERFILE_PORT=$DOCKERFILE_PORT
+
+        pluginhook pre-build-dockerfile "$APP"
+
+        [[ "$CREW_DOCKERFILE_CACHE_BUILD" == "false" ]] && CREW_DOCKER_BUILD_OPTS="$CREW_DOCKER_BUILD_OPTS --no-cache"
+        docker build $CREW_DOCKER_BUILD_OPTS -t "$IMAGE" .
+
+        pluginhook post-build-dockerfile "$APP"
+        ;;
+
+      *)
+        crew_log_fail "Building image source type $IMAGE_SOURCE_TYPE not supported!"
+        ;;
+    esac
+    ;;
+
+  release)
+    APP="$2"; IMAGE="crew/$APP"; IMAGE_SOURCE_TYPE="$3"
+    case "$IMAGE_SOURCE_TYPE" in
+      dockerfile)
+        pluginhook pre-release-dockerfile "$APP"
+        pluginhook post-release-dockerfile "$APP"
+        ;;
+
+      *)
+        crew_log_fail "Releasing image source type $IMAGE_SOURCE_TYPE not supported!"
+        ;;
+    esac
+    ;;
+
+  trace)
+    [[ -d $CREW_ROOT/.crewrc ]] || mkdir -p $CREW_ROOT/.crewrc
+    [[ "$2" == "on" ]] || [[ "$2" == "off" ]] || {
+      echo "Valid trace options are [on/off]"
+      exit 1
+    }
+
+    if [[ "$2" == "on" ]]; then
+      echo "Enabling crew trace"
+      echo "export CREW_TRACE=1" > $CREW_ROOT/.crewrc/CREW_TRACE
+    fi
+
+    if [[ "$2" == "off" ]]; then
+      echo "Disabling crew trace"
+      rm -f $CREW_ROOT/.crewrc/CREW_TRACE
+    fi
+    ;;
+
+  delete)
+    crew apps:destroy $2
+    ;;
+
+  ls)
+    crew_apps=$(ls -d $CREW_ROOT/*/ 2>/dev/null) || (echo "You haven't deployed any applications yet" && exit 1)
+
+    crew_col_log_info1_quiet "App Name" "Container Type" "Container Id" "Status"
+
+    for crew_app in $crew_apps; do
+      APP=$(basename $crew_app)
+      CREW_APP_CIDS=$(get_app_container_ids $APP)
+      DOCKER_RUNNING_CONTAINERS=$(docker ps -q --no-trunc)
+      if [[ -n $CREW_APP_CIDS ]]; then
+        for CREW_APP_CID in $CREW_APP_CIDS; do
+          CREW_APP_CONTAINER_STATUS="stopped"
+          [[ $DOCKER_RUNNING_CONTAINERS =~ $CREW_APP_CID ]] && CREW_APP_CONTAINER_STATUS="running"
+          CREW_APP_CONTAINER_TYPE=$(grep -l $CREW_APP_CID $CREW_ROOT/$APP/CONTAINER.* | awk -F '/' '{ print $5 }' | awk -F '.' '{ print $2 }')
+          crew_col_log_msg "$APP" "$CREW_APP_CONTAINER_TYPE" "${CREW_APP_CID:0:12}" "$CREW_APP_CONTAINER_STATUS"
+        done
+      else
+        crew_col_log_msg "$APP" "NOT_DEPLOYED" "NOT_DEPLOYED" "NOT_DEPLOYED"
+      fi
+    done
+    ;;
+
+  logs)
+    [[ -z $2 ]] && echo "Please specify an app to run the command on" && exit 1
+    verify_app_name "$2"
+    APP="$2";
+
+    if (is_deployed $APP); then
+      CONTAINER_IDS=( $(get_app_container_ids $APP) )
+      LAST_CONTAINER_ID=${CONTAINER_IDS[${#CONTAINER_IDS[@]} - 1]}
+
+      if [[ $3 == "-t" ]]; then
+        CREW_LOGS_ARGS="--follow"
+      else
+        CREW_LOGS_ARGS="--tail 100"
+      fi
+      for CID in "${CONTAINER_IDS[@]}";do
+        if [[ "$CID" != "$LAST_CONTAINER_ID" ]];then
+          CREW_LOGS_CMD+="docker logs $CREW_LOGS_ARGS $CID& "
+        else
+          CREW_LOGS_CMD+="docker logs $CREW_LOGS_ARGS $CID; "
+        fi
+      done
+      bash -c "($CREW_LOGS_CMD)"
+    else
+      echo "Application's container not found"
+    fi
+    ;;
+
+  run)
+    [[ -z $2 ]] && echo "Please specify an app to run the command on" && exit 1
+    verify_app_name "$2"
+    APP="$2"; IMAGE="crew/$APP"
+
+    shift 2
+
+    DOCKER_ARGS=$(: | pluginhook docker-args $APP run)
+    DOCKER_ARGS+=$(: | pluginhook docker-args-run $APP)
+    [[ $CREW_RM_CONTAINER ]] && CREW_RUN_OPTS="--rm"
+    has_tty && CREW_RUN_OPTS+=" -i -t"
+
+    docker run $CREW_RUN_OPTS $DOCKER_ARGS $IMAGE $EXEC_CMD "$@"
+    ;;
+
+  version)
+    cat "$CREW_ROOT/VERSION" || {
+      echo "Unable to determine crew's version" 2>&1
+      exit 1
+    }
+    ;;
+
+  help)
+    cat && cat<<EOF
+    ls                                                         Pretty listing of deployed applications and containers
+    logs <app> [-t]                                            Show the last logs for an application (-t follows)
+    run <app> <cmd>                                            Run a command in the environment of an application
+    version                                                    Print crew's version
+EOF
+    ;;
+
+  *)
+    exit $CREW_NOT_IMPLEMENTED_EXIT
+    ;;
+
+esac

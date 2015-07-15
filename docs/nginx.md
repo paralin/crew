@@ -1,10 +1,10 @@
 # Nginx
 
-Dokku uses nginx as it's server for routing requests to specific applications. By default, access and error logs are written for each app to `/var/log/nginx/${APP}-access.log` and `/var/log/nginx/${APP}-error.log` respectively
+Crew uses nginx as it's server for routing requests to specific applications. By default, access and error logs are written for each app to `/var/log/nginx/${APP}-access.log` and `/var/log/nginx/${APP}-error.log` respectively
 
 ## TLS/SPDY support
 
-Dokku provides easy TLS/SPDY support out of the box. This can be done app-by-app or for all subdomains at once. Note that whenever TLS support is enabled SPDY is also enabled.
+Crew provides easy TLS/SPDY support out of the box. This can be done app-by-app or for all subdomains at once. Note that whenever TLS support is enabled SPDY is also enabled.
 
 ### Per App
 
@@ -15,20 +15,20 @@ To enable TLS connections to to one of your applications, do the following:
  * If you are not paranoid and need it just for a DEV or STAGING app, you can use http://www.selfsignedcertificate.com/ to generate your 2 files more easily.
 * Rename your files to server.key and server.crt
 * tar these 2 files together, *without* subdirectories. Example: tar cvf cert-key.tar server.crt server.key
-* Install the pair for your app, like this: ssh dokku@ip-of-your-dokku-server nginx:import-ssl < cert-key.tar
+* Install the pair for your app, like this: ssh crew@ip-of-your-crew-server nginx:import-ssl < cert-key.tar
 
-You will need to repeat the steps above for each domain used to serve your app. You can't simply create a single tar with all key/cert files in it (see https://github.com/progrium/dokku/issues/1195).
+You will need to repeat the steps above for each domain used to serve your app. You can't simply create a single tar with all key/cert files in it (see https://github.com/progrium/crew/issues/1195).
 
 
 ### All Subdomains
 
 To enable TLS connections for all your applications at once you will need a wildcard TLS certificate.
 
-To enable TLS across all apps, copy or symlink the `.crt` and `.key` files into the  `/home/dokku/tls` folder (create this folder if it doesn't exist) as `server.crt` and `server.key` respectively. Then, enable the certificates by editing `/etc/nginx/conf.d/dokku.conf` and uncommenting these two lines (remove the #):
+To enable TLS across all apps, copy or symlink the `.crt` and `.key` files into the  `/home/crew/tls` folder (create this folder if it doesn't exist) as `server.crt` and `server.key` respectively. Then, enable the certificates by editing `/etc/nginx/conf.d/crew.conf` and uncommenting these two lines (remove the #):
 
 ```
-ssl_certificate /home/dokku/tls/server.crt;
-ssl_certificate_key /home/dokku/tls/server.key;
+ssl_certificate /home/crew/tls/server.crt;
+ssl_certificate_key /home/crew/tls/server.key;
 ```
 
 The nginx configuration will need to be reloaded in order for the updated TLS configuration to be applied. This can be done either via the init system or by re-deploying the application. Once TLS is enabled, the application will be accessible by `https://` (redirection from `http://` is applied as well).
@@ -37,7 +37,7 @@ The nginx configuration will need to be reloaded in order for the updated TLS co
 
 ### HSTS Header
 
-The [HSTS header](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) is an HTTP header that can inform browsers that all requests to a given site should be made via HTTPS. dokku does not, by default, enable this header. It is thus left up to you, the user, to enable it for your site.
+The [HSTS header](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security) is an HTTP header that can inform browsers that all requests to a given site should be made via HTTPS. crew does not, by default, enable this header. It is thus left up to you, the user, to enable it for your site.
 
 Beware that if you enable the header and a subsequent deploy of your application results in an HTTP deploy (for whatever reason), the way the header works means that a browser will not attempt to request the HTTP version of your site if the HTTPS version fails.
 
@@ -46,7 +46,7 @@ Beware that if you enable the header and a subsequent deploy of your application
 You can import ssl certificates via tarball using the following command:
 
 ``` bash
-dokku nginx:import-ssl myapp < archive-of-certs.tar
+crew nginx:import-ssl myapp < archive-of-certs.tar
 ```
 
 This archive should is expanded via `tar xvf`. It should contain `server.crt` and `server.key`.
@@ -55,11 +55,11 @@ This archive should is expanded via `tar xvf`. It should contain `server.crt` an
 
 > New as of 0.3.17.
 
-Dokku currently templates out an nginx configuration that is included in the `nginx-vhosts` plugin. If you'd like to provide a custom template for your application, you should copy the existing template - ssl or non-ssl - into your application repository's root directory as the file `nginx.conf.template`. The next time you deploy, Nginx will use your template instead of the default.
+Crew currently templates out an nginx configuration that is included in the `nginx-vhosts` plugin. If you'd like to provide a custom template for your application, you should copy the existing template - ssl or non-ssl - into your application repository's root directory as the file `nginx.conf.template`. The next time you deploy, Nginx will use your template instead of the default.
 
 > New as of 0.3.10.
 
-You may also place this file on disk at the path `/home/dokku/myapp/nginx.conf.template`. If placed on disk on the dokku server, the template file **must** be owned by the user `dokku:dokku`.
+You may also place this file on disk at the path `/home/crew/myapp/nginx.conf.template`. If placed on disk on the crew server, the template file **must** be owned by the user `crew:crew`.
 
 For instance - assuming defaults - to customize the nginx template in use for the `myapp` application, create the file `nginx.conf.template` in your repo or on disk with the with the following contents:
 
@@ -85,7 +85,7 @@ server {
     proxy_set_header X-Forwarded-Port \$server_port;
     proxy_set_header X-Request-Start \$msec;
   }
-  include $DOKKU_ROOT/$APP/nginx.conf.d/*.conf;
+  include $CREW_ROOT/$APP/nginx.conf.d/*.conf;
 }
 ```
 
@@ -97,7 +97,7 @@ A few tips for custom nginx templates:
 - Templated files will be validated via `nginx -t`.
 - Application environment variables can be used within your nginx configuration.
 
-After your changes a `dokku deploy myapp` will regenerate the `/home/dokku/myapp/nginx.conf` file which is then used.
+After your changes a `crew deploy myapp` will regenerate the `/home/crew/myapp/nginx.conf` file which is then used.
 
 ## Customizing hostnames
 
@@ -107,13 +107,13 @@ Applications typically have the following structure for their hostname:
 scheme://subdomain.domain.tld
 ```
 
-The `subdomain` is inferred from the pushed application name, while the `domain` is set during initial configuration in the `$DOKKU_ROOT/VHOST` file.
+The `subdomain` is inferred from the pushed application name, while the `domain` is set during initial configuration in the `$CREW_ROOT/VHOST` file.
 
 You can optionally override this in a plugin by implementing the `nginx-hostname` pluginhook. For example, you can reverse the subdomain with the following sample `nginx-hostname` pluginhook:
 
 ```shell
 #!/usr/bin/env bash
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
 
 APP="$1"; SUBDOMAIN="$2"; VHOST="$3"
 
@@ -130,7 +130,7 @@ You can also use the built-in `domains` plugin to handle:
 If desired, it is possible to disable vhosts by setting the `NO_VHOST` environment variable:
 
 ```shell
-dokku config:set myapp NO_VHOST=1
+crew config:set myapp NO_VHOST=1
 ```
 
 On subsequent deploys, the nginx virtualhost will be discarded. This is useful when deploying internal-facing services that should not be publicly routeable.
@@ -147,43 +147,43 @@ Custom domains are also backed up via the built-in `backup` plugin
 # where `myapp` is the name of your app
 
 # add a domain to an app
-dokku domains:add myapp example.com
+crew domains:add myapp example.com
 
 # list custom domains for app
-dokku domains myapp
+crew domains myapp
 
 # clear all custom domains for app
-dokku domains:clear myapp
+crew domains:clear myapp
 
 # remove a custom domain from app
-dokku domains:remove myapp example.com
+crew domains:remove myapp example.com
 ```
 
 ### Container network interface binding
 
 > New as of 0.3.13
 
-The deployed docker container running your app's web process will bind to either the internal docker network interface (i.e. `docker inspect --format '{{ .NetworkSettings.IPAddress }}' $CONTAINER_ID`) or an external interface (i.e. 0.0.0.0) depending on dokku's VHOST configuration. Dokku will attempt to bind to the internal docker network interface unless you specifically set NO_VHOST for the given app or your dokku installation is not setup to use VHOSTS (i.e. $DOKKU_ROOT/VHOST is missing or $DOKKU_ROOT/HOSTNAME is set to an IPv4 or IPv6 address)
+The deployed docker container running your app's web process will bind to either the internal docker network interface (i.e. `docker inspect --format '{{ .NetworkSettings.IPAddress }}' $CONTAINER_ID`) or an external interface (i.e. 0.0.0.0) depending on crew's VHOST configuration. Crew will attempt to bind to the internal docker network interface unless you specifically set NO_VHOST for the given app or your crew installation is not setup to use VHOSTS (i.e. $CREW_ROOT/VHOST is missing or $CREW_ROOT/HOSTNAME is set to an IPv4 or IPv6 address)
 
 ```shell
 # container bound to docker interface
-root@dokku:~/dokku# docker ps
+root@crew:~/crew# docker ps
 CONTAINER ID        IMAGE                      COMMAND                CREATED              STATUS              PORTS               NAMES
-1b88d8aec3d1        dokku/node-js-app:latest   "/bin/bash -c '/star   About a minute ago   Up About a minute                       goofy_albattani
+1b88d8aec3d1        crew/node-js-app:latest   "/bin/bash -c '/star   About a minute ago   Up About a minute                       goofy_albattani
 
-root@dokku:~/dokku# docker inspect --format '{{ .NetworkSettings.IPAddress }}' goofy_albattani
+root@crew:~/crew# docker inspect --format '{{ .NetworkSettings.IPAddress }}' goofy_albattani
 172.17.0.6
 
 # container bound to all interfaces (previous default)
-root@dokku:/home/dokku# docker ps
+root@crew:/home/crew# docker ps
 CONTAINER ID        IMAGE                      COMMAND                CREATED              STATUS              PORTS                     NAMES
-d6499edb0edb        dokku/node-js-app:latest   "/bin/bash -c '/star   About a minute ago   Up About a minute   0.0.0.0:49153->5000/tcp   nostalgic_tesla
+d6499edb0edb        crew/node-js-app:latest   "/bin/bash -c '/star   About a minute ago   Up About a minute   0.0.0.0:49153->5000/tcp   nostalgic_tesla
 
 ```
 
 # Default site
 
-By default, dokku will route any received request with an unknown HOST header value to the lexicographically first site in the nginx config stack. If this is not the desired behavior, you may want to add the following configuration to nginx. This will catch all unknown HOST header values and return a `410 Gone` response. You can replace the `return 410;` with `return 444;` which will cause nginx to not respond to requests that do not match known domains (connection refused).
+By default, crew will route any received request with an unknown HOST header value to the lexicographically first site in the nginx config stack. If this is not the desired behavior, you may want to add the following configuration to nginx. This will catch all unknown HOST header values and return a `410 Gone` response. You can replace the `return 410;` with `return 444;` which will cause nginx to not respond to requests that do not match known domains (connection refused).
 
 ```
 server {

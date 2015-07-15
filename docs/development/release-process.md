@@ -1,12 +1,12 @@
 # Release Process
 
-Dokku is released in intervals *at most* three weeks apart, though may be released much quicker.
+Crew is released in intervals *at most* three weeks apart, though may be released much quicker.
 
 To propose a release, the following tasks need to be performed:
 
 - The installable version must be changed in the `docs/installation.md` file.
 - The installable version must be changed in the `README.md` file.
-- The installable version must be changed in the `contrib/dokku-installer.rb` file.
+- The installable version must be changed in the `contrib/crew-installer.rb` file.
 - A list of changes must be made in the `HISTORY.md`.
 - A tag must be created locally with your release version
 - Debian packages *must* be created via `vagrant up build`
@@ -15,7 +15,7 @@ To propose a release, the following tasks need to be performed:
 
 ## Versioning
 
-Dokku follows semver standards. As we are not yet at a stable release, breaking changes will require *only* a minor release, while all other changes only require a patch release. Once we hit stable, breaking changes will require a major release.
+Crew follows semver standards. As we are not yet at a stable release, breaking changes will require *only* a minor release, while all other changes only require a patch release. Once we hit stable, breaking changes will require a major release.
 
 Tags should be created via the following method:
 
@@ -27,9 +27,9 @@ At the moment, tags need not be signed, though that may change in the future.
 
 ## Debian Packages
 
-The `build` target in the dokku `Vagrantfile` creates debian packages for dokku at a point in time. The version will be based upon the latest local tag - you may create your own, internal tags/releases if that is so desired.
+The `build` target in the crew `Vagrantfile` creates debian packages for crew at a point in time. The version will be based upon the latest local tag - you may create your own, internal tags/releases if that is so desired.
 
-Debian package information is held in the `debian` directory of the dokku project.
+Debian package information is held in the `debian` directory of the crew project.
 
 For the public project, releases should be pushed to packagecloud.io *after* a tag is created but *before* said tag is pushed to github. The following may be the release workflow:
 
@@ -38,7 +38,7 @@ For the public project, releases should be pushed to packagecloud.io *after* a t
 git tag v0.9.9
 vagrant up build
 export PACKAGECLOUD_TOKEN=SOME_TOKEN
-package_cloud push dokku/dokku/ubuntu/trusty dokku_0.9.9_amd64.deb
+package_cloud push crew/crew/ubuntu/trusty crew_0.9.9_amd64.deb
 ```
 
 If new versions of other packages were created, these should also be pushed at this time.

@@ -11,30 +11,30 @@ teardown() {
 }
 
 @test "(events) check conffiles" {
-  run bash -c "test -f /etc/logrotate.d/dokku"
+  run bash -c "test -f /etc/logrotate.d/crew"
   echo "output: "$output
   echo "status: "$status
   assert_success
-  run bash -c "test -f /etc/rsyslog.d/99-dokku.conf"
+  run bash -c "test -f /etc/rsyslog.d/99-crew.conf"
   echo "output: "$output
   echo "status: "$status
   assert_success
-  run bash -c "stat -c '%U:%G:%a' /var/log/dokku/"
+  run bash -c "stat -c '%U:%G:%a' /var/log/crew/"
   echo "output: "$output
   echo "status: "$status
-  assert_output "syslog:dokku:775"
-  run bash -c "stat -c '%U:%G:%a' /var/log/dokku/events.log"
+  assert_output "syslog:crew:775"
+  run bash -c "stat -c '%U:%G:%a' /var/log/crew/events.log"
   echo "output: "$output
   echo "status: "$status
-  assert_output "syslog:dokku:664"
+  assert_output "syslog:crew:664"
 }
 
 @test "(events) log commands" {
-  run dokku events:on
+  run crew events:on
   deploy_app
-  run dokku events
+  run crew events
   echo "output: "$output
   echo "status: "$status
   assert_success
-  run dokku events:off
+  run crew events:off
 }

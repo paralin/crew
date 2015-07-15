@@ -5,17 +5,17 @@
 readonly ACTION="${1:-configure}"
 readonly VERSION="${2:-dev}"
 
-db_input "high" "dokku/web_config" || true
+db_input "high" "crew/web_config" || true
 db_go || true
 
-db_get "dokku/web_config"
+db_get "crew/web_config"
 if [ $RET = "true" ]; then
     exit 0
 fi
 
-db_input "high" "dokku/hostname" || true
-db_input "high" "dokku/vhost_enable" || true
+db_input "high" "crew/hostname" || true
+db_input "high" "crew/vhost_enable" || true
 if [ "$ACTION" != "reconfigure" ]; then
-  db_input "high" "dokku/key_file" || true
+  db_input "high" "crew/key_file" || true
 fi
 db_go || true

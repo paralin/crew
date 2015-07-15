@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
 source "$(dirname $0)/../common/functions"
 source "$(dirname $0)/functions"
 
@@ -35,10 +35,10 @@ case "$1" in
     APP="$2"; CONTAINER_IDS=$(get_app_container_ids $APP)
     ! (is_deployed $APP) && echo "App $APP has not been deployed" && exit 0
 
-    DOKKU_APP_RUNNING_CONTAINER_IDS=$(get_app_running_container_ids $APP)
-    if [[ -n "$DOKKU_APP_RUNNING_CONTAINER_IDS" ]]; then
+    CREW_APP_RUNNING_CONTAINER_IDS=$(get_app_running_container_ids $APP)
+    if [[ -n "$CREW_APP_RUNNING_CONTAINER_IDS" ]]; then
       echo "Stopping $APP ..."
-      docker stop $DOKKU_APP_RUNNING_CONTAINER_IDS > /dev/null || true
+      docker stop $CREW_APP_RUNNING_CONTAINER_IDS > /dev/null || true
     else
       echo "App $APP already stopped"
     fi
@@ -54,10 +54,10 @@ case "$1" in
 
   ps:rebuildall)
     shopt -s nullglob
-    for app in $DOKKU_ROOT/*; do
+    for app in $CREW_ROOT/*; do
       [[ ! -d $app ]] && continue
       APP=$(basename $app)
-      is_deployed $APP && dokku ps:rebuild $APP
+      is_deployed $APP && crew ps:rebuild $APP
     done
     shopt -u nullglob
   ;;
@@ -74,10 +74,10 @@ case "$1" in
 
   ps:restartall)
     shopt -s nullglob
-    for app in $DOKKU_ROOT/*; do
+    for app in $CREW_ROOT/*; do
       [[ ! -d $app ]] && continue
       APP=$(basename $app)
-      dokku ps:restart $APP
+      crew ps:restart $APP
     done
     shopt -u nullglob
   ;;
@@ -86,13 +86,13 @@ case "$1" in
     [[ -z $2 ]] && echo "Please specify an app to run the command on" && exit 1
     verify_app_name "$2"
 
-    APP="$2"; DOKKU_SCALE_FILE="$DOKKU_ROOT/$APP/DOKKU_SCALE"
+    APP="$2"; CREW_SCALE_FILE="$CREW_ROOT/$APP/CREW_SCALE"
     shift 2
 
     generate_scale_file "$APP"
     if [[ -z "$@" ]];then
-      dokku_log_info1 "Scaling for $APP"
-      dokku_log_info2 "$(< $DOKKU_SCALE_FILE)"
+      crew_log_info1 "Scaling for $APP"
+      crew_log_info2 "$(< $CREW_SCALE_FILE)"
     else
       set_scale "$APP" "$@"
       release_and_deploy "$APP"
@@ -113,7 +113,7 @@ EOF
     ;;
 
   *)
-    exit $DOKKU_NOT_IMPLEMENTED_EXIT
+    exit $CREW_NOT_IMPLEMENTED_EXIT
     ;;
 
 esac

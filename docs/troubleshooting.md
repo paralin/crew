@@ -27,9 +27,9 @@ A value of 64 would allow domains with up to 64 characters. Set it to 128 if you
 Save the file and try stopping nginx and starting it again:
 
 ```
-root@dockerapps:~/dokku/buildstep# /etc/init.d/nginx stop
+root@dockerapps:~/crew/buildstep# /etc/init.d/nginx stop
  * Stopping nginx nginx                                        [ OK ]
-root@dockerapps:~/dokku/buildstep# /etc/init.d/nginx start
+root@dockerapps:~/crew/buildstep# /etc/init.d/nginx start
  * Starting nginx nginx                                        [ OK ]
 ```
 
@@ -43,20 +43,20 @@ __Solution:__
 
 The `remote rejected` error does not give enough information. Anything could have failed.
 
-To enable dokku tracing, simply run the following command:
+To enable crew tracing, simply run the following command:
 
     # Since 0.3.9
-    dokku trace
+    crew trace
 
-In versions older than 0.3.9, you can create a `/home/dokku/dokkurc` file containing the following :
+In versions older than 0.3.9, you can create a `/home/crew/crewrc` file containing the following :
 
-    export DOKKU_TRACE=1
+    export CREW_TRACE=1
 
-This will trace all of dokku's activity. If this does not help you, create a [gist](https://gist.github.com) containing the full log, and create an issue.
+This will trace all of crew's activity. If this does not help you, create a [gist](https://gist.github.com) containing the full log, and create an issue.
 
 ***
 
-__Symptom:__ I get the aforementioned error in the build phase (after turning on dokku tracing)
+__Symptom:__ I get the aforementioned error in the build phase (after turning on crew tracing)
 
   Most errors that happen in this phase are due to transient network issues (either locally or remotely) buildpack bugs.
 
@@ -65,14 +65,14 @@ __Solution (Less solution, more helpful troubleshooting steps):__
   Find the failed phase's container image (*077581956a92* in this example)
 
     ```
-    root@dokku:~# docker ps -a  | grep builder
+    root@crew:~# docker ps -a  | grep builder
     94d9515e6d93        077581956a92                "/build/builder"       29 minutes ago      Exited (0) 25 minutes ago                       cocky_bell
     ```
 
   Start a new container with the failed image and poke around (i.e. ensure you can access the internet from within the container or attempt the failed command, if known)
 
     ```
-    root@dokku:~# docker run -ti 077581956a92 /bin/bash
+    root@crew:~# docker run -ti 077581956a92 /bin/bash
     root@9763ab86e1b4:/# curl -s -S icanhazip.com
     192.168.0.1
     curl http://s3pository.heroku.com/node/v0.10.30/node-v0.10.30-linux-x64.tar.gz -o node-v0.10.30-linux-x64.tar.gz
@@ -84,10 +84,10 @@ __Solution (Less solution, more helpful troubleshooting steps):__
   Additionally we've seen issues if changing networks that have different DNS resolvers. In this case, you can run the following to update your resolv.conf
 
   ```
-  root@dokku:~# resolvconf -u
+  root@crew:~# resolvconf -u
   ```
 
-Please see https://github.com/progrium/dokku/issues/841 and https://github.com/progrium/dokku/issues/649
+Please see https://github.com/progrium/crew/issues/841 and https://github.com/progrium/crew/issues/649
 
 ***
 
@@ -102,20 +102,20 @@ You get asked for a password because your ssh secret key can't be found. This ma
 
 You have to point ssh to the correct secret key for your domain name. Add the following to your `~/.ssh/config`:
 
-    Host DOKKU_HOSTNAME
+    Host CREW_HOSTNAME
       IdentityFile "~/.ssh/KEYNAME"
 
-Also see [issue #116](https://github.com/progrium/dokku/issues/116)
+Also see [issue #116](https://github.com/progrium/crew/issues/116)
 
 ***
 
-__Symptom:__ I want to deploy my nodejs app on dokku and use a postinstall script within the package.json but I keep getting this error:
+__Symptom:__ I want to deploy my nodejs app on crew and use a postinstall script within the package.json but I keep getting this error:
 
     npm WARN cannot run in wd app@1.0.0 echo blah (wd=/build/app)
 
 __Solution:__
 
-This is a permissions problem as dokku (buildstep) uses a root account for running the application. (This may change please see this thread: https://github.com/progrium/buildstep/pull/42).
+This is a permissions problem as crew (buildstep) uses a root account for running the application. (This may change please see this thread: https://github.com/progrium/buildstep/pull/42).
 
 To allow npm to work as root account one must set the configuration option of ```unsafe-perm``` to true. There are many ways to set this configuration option but the one I've found works most consistently with the heroku-nodejs-buildpack is as a .npmrc file. The file should contain
 
@@ -125,7 +125,7 @@ unsafe-perm = true
 
 Note that this is NOT required on heroku as heroku does not use a root account for running the application.
 
-Please see https://github.com/progrium/dokku/issues/420 and https://github.com/heroku/heroku-buildpack-nodejs/issues/92.
+Please see https://github.com/progrium/crew/issues/420 and https://github.com/heroku/heroku-buildpack-nodejs/issues/92.
 
 ***
 
@@ -139,7 +139,7 @@ When specifying your port you may want to use something similar to:
 
     var port = process.env.PORT || 3000
 
-Please see https://github.com/progrium/dokku/issues/282
+Please see https://github.com/progrium/crew/issues/282
 
 ***
 
@@ -158,14 +158,14 @@ If you see output similar this when deploying:
  !     tar: Error is not recoverable: exiting now
 ```
 
-it might that the curl command that is supposed to fetch the buildpack (anything in the low megabyte file size range) takes too long to finish, due to slowish connection.  To overwrite the default values (connection timeout: 3 seconds, total maximum time for operation: 30 seconds), edit `/home/dokku/ENV` like the following:
+it might that the curl command that is supposed to fetch the buildpack (anything in the low megabyte file size range) takes too long to finish, due to slowish connection.  To overwrite the default values (connection timeout: 3 seconds, total maximum time for operation: 30 seconds), edit `/home/crew/ENV` like the following:
 
 ```
-#/home/dokku/ENV
+#/home/crew/ENV
 export CURL_TIMEOUT=600
 export CURL_CONNECT_TIMEOUT=30
 ```
 
 References
-* https://github.com/progrium/dokku/issues/509
-* https://github.com/dokku-alt/dokku-alt/issues/169
+* https://github.com/progrium/crew/issues/509
+* https://github.com/crew-alt/crew-alt/issues/169

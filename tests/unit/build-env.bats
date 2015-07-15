@@ -11,11 +11,11 @@ teardown() {
 }
 
 @test "(build-env) special characters" {
-  run dokku config:set $TEST_APP NEWRELIC_APP_NAME="$TEST_APP (Staging)"
+  run crew config:set $TEST_APP NEWRELIC_APP_NAME="$TEST_APP (Staging)"
   echo "output: "$output
   echo "status: "$status
   assert_success
   deploy_app
-  run dokku config $TEST_APP
+  run crew config $TEST_APP
   assert_success
 }

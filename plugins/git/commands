@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
 source "$(dirname $0)/../common/functions"
 
 git_build_app_repo() {
@@ -14,16 +14,16 @@ git_build_app_repo() {
   chmod 755 $TMP_WORK_DIR
   unset GIT_DIR GIT_WORK_TREE
   pushd $TMP_WORK_DIR > /dev/null
-  git clone -q "$DOKKU_ROOT/$APP" "$TMP_WORK_DIR" &> /dev/null
+  git clone -q "$CREW_ROOT/$APP" "$TMP_WORK_DIR" &> /dev/null
   git config advice.detachedHead false
   git checkout "$REV" &> /dev/null
   git submodule update --init --recursive &> /dev/null
   find -name .git -prune -exec rm -rf {} \; > /dev/null
 
-  if [[ -f Dockerfile ]] && [[ "$([[ -f .env ]] && grep -q BUILDPACK_URL .env; echo $?)" != "0" ]] && [[ ! -f ".buildpacks" ]]; then
-    dokku receive "$APP" "dockerfile" "$TMP_WORK_DIR" | sed -u "s/^/"$'\e[1G'"/"
+  if [[ -f Dockerfile ]]; then
+    crew receive "$APP" "dockerfile" "$TMP_WORK_DIR" | sed -u "s/^/"$'\e[1G'"/"
   else
-    dokku receive "$APP" "buildstep" "$TMP_WORK_DIR" | sed -u "s/^/"$'\e[1G'"/"
+    crew_log_fail "You need a Dockerfile in the root of your repository."
   fi
 }
 
@@ -43,7 +43,7 @@ case "$1" in
           pluginhook receive-branch $APP $newrev $refname
         else
           echo $'\e[1G\e[K'"-----> WARNING: deploy did not complete, you must push to master."
-          echo $'\e[1G\e[K'"-----> for example, try 'git push <dokku> ${refname/refs\/heads\/}:master'"
+          echo $'\e[1G\e[K'"-----> for example, try 'git push <crew> ${refname/refs\/heads\/}:master'"
         fi
       fi
     done
@@ -52,17 +52,17 @@ case "$1" in
   git-upload-pack)
     APP="$(echo $2 | perl -pe 's/(?<!\\)'\''//g' | sed 's/\\'\''/'\''/g')"
     pluginhook git-pre-pull $APP
-    cat | git-upload-pack "$DOKKU_ROOT/$APP"
+    cat | git-upload-pack "$CREW_ROOT/$APP"
     pluginhook git-post-pull $APP
     ;;
 
   git-build)
-    APP="$2"; APP_BUILD_LOCK="$DOKKU_ROOT/$APP/.build.lock"
+    APP="$2"; APP_BUILD_LOCK="$CREW_ROOT/$APP/.build.lock"
     APP_BUILD_LOCK_MSG="$APP is currently being deployed or locked. Waiting..."
     [[ $(flock -n "$APP_BUILD_LOCK" true &>/dev/null ; echo $?) -ne 0 ]] && echo "$APP_BUILD_LOCK_MSG"
 
     shift 1
-    flock -o "$APP_BUILD_LOCK" dokku git-build-locked "$@"
+    flock -o "$APP_BUILD_LOCK" crew git-build-locked "$@"
     ;;
 
   git-build-locked)
@@ -70,14 +70,14 @@ case "$1" in
     if [[ $# -ge 3 ]];then
       REF="$3"
     else
-      REF=$(< "$DOKKU_ROOT/$APP/refs/heads/master")
+      REF=$(< "$CREW_ROOT/$APP/refs/heads/master")
     fi
     git_build_app_repo $APP $REF
     ;;
 
   git-*)
     APP="$(echo $2 | perl -pe 's/(?<!\\)'\''//g' | sed 's/\\'\''/'\''/g' | sed 's/^\///g')"
-    APP_PATH=$DOKKU_ROOT/$APP
+    APP_PATH=$CREW_ROOT/$APP
 
     if [[ $1 == "git-receive-pack" && ! -d "$APP_PATH/refs" ]]; then
       git init --bare $APP_PATH > /dev/null
@@ -86,7 +86,7 @@ case "$1" in
 #!/usr/bin/env bash
 set -e; set -o pipefail;
 
-cat | DOKKU_ROOT="$DOKKU_ROOT" dokku git-hook $APP
+cat | CREW_ROOT="$CREW_ROOT" crew git-hook $APP
 EOF
       chmod +x $PRERECEIVE_HOOK
     fi
@@ -104,7 +104,7 @@ EOF
     ;;
 
   *)
-    exit $DOKKU_NOT_IMPLEMENTED_EXIT
+    exit $CREW_NOT_IMPLEMENTED_EXIT
     ;;
 
 esac

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
+
+if [[ ! -f  "$CREW_ROOT/HOSTNAME" ]]; then
+  hostname -f > $CREW_ROOT/HOSTNAME
+fi
+
+if [[ ! -f  "$CREW_ROOT/VHOST" ]]; then
+  [[ $(dig +short "$(< "$CREW_ROOT/HOSTNAME")") ]] && cp "$CREW_ROOT/HOSTNAME" "$CREW_ROOT/VHOST"
+fi
+
+# temporary hack for https://github.com/progrium/crew/issues/82
+# redeploys all apps after a reboot
+case "$CREW_DISTRO" in
+  ubuntu)
+    cat<<EOF > /etc/init/crew-redeploy.conf
+description "Crew app redeploy service"
+
+start on filesystem and started docker
+
+script
+  sleep 2 # give docker some time
+  sudo -i -u crew /usr/local/bin/crew ps:restartall
+end script
+EOF
+    ;;
+
+  opensuse)
+    cat<<EOF > /etc/systemd/system/crew-redeploy.service
+[Unit]
+Description=Crew app redeploy service
+After=docker.target
+
+[Service]
+Type=simple
+User=crew
+ExecStart=/usr/local/bin/crew ps:restartall
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    ;;
+esac
+
+
+cat<<EOF > /etc/update-motd.d/99-crew
+#!/bin/sh
+
+if [ ! -f "/home/crew/HOSTNAME" ]; then
+  echo "\nTo avoid cli-based crew configuration, use the web installer"
+  echo "Debian-based installs should have this running and available"
+  echo "on port 80. You can also install it via the following commands:"
+  echo ""
+  echo "  cd /root/crew"
+  echo "  sudo make crew-installer\n"
+fi
+EOF
+chmod +x /etc/update-motd.d/99-crew

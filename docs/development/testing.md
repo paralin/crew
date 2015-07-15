@@ -1,6 +1,6 @@
-# Dokku test suite
+# Crew test suite
 
-Dokku now has a full test suite to assist in quick iterating development. These tests include a linter using [shellcheck](https://github.com/koalaman/shellcheck), functional unit tests using the [bats testing framework](https://github.com/sstephenson/bats), and a deployment suite of example apps that use the most popular languages and frameworks.
+Crew now has a full test suite to assist in quick iterating development. These tests include a linter using [shellcheck](https://github.com/koalaman/shellcheck), functional unit tests using the [bats testing framework](https://github.com/sstephenson/bats), and a deployment suite of example apps that use the most popular languages and frameworks.
 
 Bats tests can be found here:
   ```
@@ -14,13 +14,13 @@ Example apps can be found here:
 
 ### Executing tests locally
 
-- Setup dokku in a [vagrant vm](http://progrium.viewdocs.io/dokku/getting-started/install/vagrant)
+- Setup crew in a [vagrant vm](http://progrium.viewdocs.io/crew/getting-started/install/vagrant)
 - Test setup and execution
 
   ```shell
   $ vagrant ssh
   $ sudo su -
-  $ cd ~/dokku
+  $ cd ~/crew
   $ make ci-dependencies setup-deploy-tests
   $ make test  # run the entire test suite (linter, bats tests, and app deployment tests)
   $
@@ -33,4 +33,4 @@ Example apps can be found here:
   ```shell
   make deploy-test-nodejs-express
   ```
-- For a full list of test make targets check out `tests.mk` in the root of the dokku repository.
+- For a full list of test make targets check out `tests.mk` in the root of the crew repository.

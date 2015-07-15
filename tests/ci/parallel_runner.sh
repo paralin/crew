@@ -7,8 +7,8 @@ setup_circle() {
   [[ "$1" == "buildstack" ]] && MAKE_ENV+=" BUILD_STACK=true "
   echo "setting up with MAKE_ENV: $MAKE_ENV"
   sudo -E CI=true make -e sshcommand
-  # need to add the dokku user to the docker group
-  sudo usermod -G docker dokku
+  # need to add the crew user to the docker group
+  sudo usermod -G docker crew
   #### circle does some weird *expletive* with regards to root and gh auth (needed for gitsubmodules test)
   sudo rsync -a ~ubuntu/.ssh/ ~root/.ssh/
   sudo chown -R root:root ~root/.ssh/
@@ -30,17 +30,5 @@ case "$CIRCLE_NODE_INDEX" in
     echo "=====> make unit-tests (2/2) on CIRCLE_NODE_INDEX: $CIRCLE_NODE_INDEX"
     [[ "$MODE" == "setup" ]] && setup_circle && exit 0
     sudo -E UNIT_TEST_BATCH=2 make -e unit-tests
-    ;;
-
-  2)
-    echo "=====> make deploy-tests (buildstep release) on CIRCLE_NODE_INDEX: $CIRCLE_NODE_INDEX"
-    [[ "$MODE" == "setup" ]] && setup_circle && exit 0
-    sudo -E make -e deploy-tests
-    ;;
-
-  3)
-    echo "=====> make deploy-tests (buildstep master) on CIRCLE_NODE_INDEX: $CIRCLE_NODE_INDEX"
-    [[ "$MODE" == "setup" ]] && setup_circle buildstack && exit 0
-    sudo -E make -e deploy-tests
     ;;
 esac
