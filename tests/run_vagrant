@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 SELF=$(which $0)
-VAGRANT_SSH_PORT=${VAGRANT_SSH_PORT:-"2222"}
+VAGRANT_SSH_PORT=${VAGRANT_SSH_PORT:-"22"}
 PUBLIC_KEY=${PUBLIC_KEY:-"$HOME/.ssh/id_rsa.pub"}
 FORWARDED_PORT=${FORWARDED_PORT:-":8080"}
 indent() { sed "s/^/       /"; }
@@ -20,7 +20,7 @@ cd "$(dirname $SELF)/.." && vagrant up | indent
 popd > /dev/null
 
 echo "-----> Installing SSH public keys..."
-ssh -o "StrictHostKeyChecking=no" -i ~/.vagrant.d/insecure_private_key vagrant@crew.me "sudo sshcommand acl-add crew test" < $PUBLIC_KEY
+ssh -o "StrictHostKeyChecking=no" -i ~/.vagrant.d/insecure_private_key root@crew.me "sshcommand acl-add crew test" < $PUBLIC_KEY
 
 for app_path in apps/*; do
   app=$(basename $app_path)
