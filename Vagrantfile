@@ -9,7 +9,7 @@ FORWARDED_PORT = (ENV["FORWARDED_PORT"] || '8080').to_i
 PREBUILT_STACK_URL = File.exist?("#{File.dirname(__FILE__)}/stack.tgz") ? 'file:///root/crew/stack.tgz' : nil
 PUBLIC_KEY_PATH = "#{Dir.home}/.ssh/id_rsa.pub"
 
-make_cmd = "DEBIAN_FRONTEND=noninteractive make -e install"
+make_cmd = "DEBIAN_FRONTEND=noninteractive make -e debinstall"
 if PREBUILT_STACK_URL
   make_cmd = "PREBUILT_STACK_URL='#{PREBUILT_STACK_URL}' #{make_cmd}"
 end

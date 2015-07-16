@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $CREW_TRACE ]] && set -x
+
+case "$1" in
+  sshkey:add)
+    KEY=$(cat)
+    if [ -z "$KEY" ]; then
+      echo "Pipe the SSH key into this command."
+      exit -1
+    fi
+    IDENTIFIER=$2
+    if [ -z "$IDENTIFIER" ]; then
+      echo "Specify an identifier for the key."
+      exit -1
+    fi
+    FINGERPRINT=$(ssh-keygen -lf /dev/stdin <<< $(echo $KEY) | awk '{print $2}')
+    KEY_PREFIX="command=\"FINGERPRINT=$FINGERPRINT NAME=$IDENTIFIER crew \$SSH_ORIGINAL_COMMAND\",no-agent-forwarding,no-user-rc,no-X11-forwarding,no-port-forwarding"
+    echo "$KEY_PREFIX $KEY" >> "/home/crew/.ssh/authorized_keys"
+    echo $FINGERPRINT
+
+    ;;
+
+  sshkey:remove)
+    IDENTIFIER=$2
+    if [ -z "$IDENTIFIER" ]; then
+      echo "Specify an identifier for the key to remove."
+      exit -1
+    fi
+    sed --in-place "/ NAME=$IDENTIFIER /d" "/home/crew/.ssh/authorized_keys"
+    echo "Key removed."
+    ;;
+
+  help | sshkey:help)
+    cat && cat<<EOF
+    sshkey:add <identifier>                                    Add a SSH public key for access with identifier.
+    sshkey:remove <identifier>                                 Remove a SSH public key by identifier.
+EOF
+    ;;
+
+  *)
+    exit $CREW_NOT_IMPLEMENTED_EXIT
+    ;;
+
+esac

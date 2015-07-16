@@ -3,6 +3,7 @@ CREW_VERSION = master
 SSHCOMMAND_URL ?= https://raw.github.com/progrium/sshcommand/master/sshcommand
 PLUGINHOOK_URL ?= https://s3.amazonaws.com/progrium-pluginhook/pluginhook_0.1.0_amd64.deb
 PLUGINS_PATH ?= /var/lib/crew/plugins
+INSTALL ?= install
 
 # If the first argument is "vagrant-crew"...
 ifeq (vagrant-crew,$(firstword $(MAKECMDGOALS)))
@@ -12,7 +13,7 @@ ifeq (vagrant-crew,$(firstword $(MAKECMDGOALS)))
   $(eval $(RUN_ARGS):;@:)
 endif
 
-.PHONY: all apt-update install copyfiles man-db version plugins dependencies sshcommand pluginhook docker aufs stack count crew-installer vagrant-acl-add vagrant-crew
+.PHONY: all apt-update debinstall copyfiles man-db version plugins dependencies sshcommand pluginhook docker aufs stack count crew-installer vagrant-acl-add vagrant-crew
 
 include tests.mk
 include deb.mk
@@ -118,3 +119,9 @@ vagrant-acl-add:
 vagrant-crew:
 	vagrant ssh -- "sudo -H -u root bash -c 'crew $(RUN_ARGS)'"
 
+# Try to install without any deb stuff
+install:
+	-rm -rf /var/lib/crew/
+	mkdir -p /var/lib/crew/plugins/
+	$(INSTALL) -D ./plugins/ /var/lib/crew/plugins/ -m 0755
+	$(INSTALL) -m 0755 ./crew /usr/local/bin
