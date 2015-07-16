@@ -24,14 +24,14 @@ Crew allows you to run multiple process types at different container counts. For
 
 Crew expects this file to contain one line for every process defined in your Procfile. Example:
 ```
-web=1
+worker=1
 worker=2
 ```
 
 
 ## Use the ps:scale command. Example:
 ```
-crew ps:scale app_name web=1 worker=2
+crew ps:scale app_name worker=1 worker=2
 ```
 *NOTE*: Crew will always use the CREW_SCALE file that ships with the repo to override any local settings.
 

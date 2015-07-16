@@ -22,7 +22,7 @@ generate_scale_file() {
   copy_from_image "$IMAGE" "/app/CREW_SCALE" "$CREW_ROOT/$APP" 2>/dev/null || true
   if [[ ! -f $CREW_SCALE_FILE ]]; then
     crew_log_info1_quiet "CREW_SCALE not found in app image. Defaulting to a single process"
-    echo "web=1" >> $CREW_SCALE_FILE
+    echo "worker=1" >> $CREW_SCALE_FILE
 
     crew_log_info1_quiet "New CREW_SCALE file generated"
     while read line || [ -n "$line" ]

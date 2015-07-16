@@ -86,7 +86,7 @@ teardown() {
   echo "status: "$status
   assert_success
 
-  run bash -c "crew ps:scale $TEST_APP web=1"
+  run bash -c "crew ps:scale $TEST_APP worker=1"
   echo "output: "$output
   echo "status: "$status
   assert_success
