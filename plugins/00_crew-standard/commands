@@ -12,6 +12,24 @@ case "$1" in
 
     case "$IMAGE_SOURCE_TYPE" in
       dockerfile)
+        # check the source image. if it is a standard library (no explicit namespace) and we are on a non-standard arch
+        # we need to scratch build the entire tree. call crew scratch:build image
+        if [ -z "$CREW_DISABLE_SCRATCHBUILD" ]; then
+          ARCH=$(uname -m)
+          STANDARDARCH=(x86_64 i686)
+          if [[ ! " ${STANDARDARCH[@]} " =~ " ${ARCH} " ]]; then
+            fromstr=$(grep "^FROM" Dockerfile) || true
+            if [ -n "$fromstr" ]; then
+              fromstr=$(echo "$fromstr" | awk '{ print $2; }')
+              source crew scratch:build $fromstr
+              if [ -n "$CREW_SUB_IMAGE" ]; then
+                echo "Patching ${fromstr} FROM declaration: ${fromstr} -> ${CREW_SUB_IMAGE}"
+                sed -i -e "s#^FROM.*\$#FROM ${CREW_SUB_IMAGE}#" Dockerfile
+              fi
+            fi
+          fi
+        fi
+
         # extract first port from Dockerfile
         DOCKERFILE_PORT=$(get_dockerfile_exposed_port Dockerfile)
         [[ -n "$DOCKERFILE_PORT" ]] && crew config:set-norestart $APP CREW_DOCKERFILE_PORT=$DOCKERFILE_PORT
