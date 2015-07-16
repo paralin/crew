@@ -156,6 +156,7 @@ case "$1" in
 
       CREW_SCRATCH_REPO_ROOT="${CREW_SCRATCH_TMPDIR}/${IMAGENAME}-${IMAGEVERSION}"
       git clone "$gitrep" "$CREW_SCRATCH_REPO_ROOT"
+      cd $CREW_SCRATCH_REPO_ROOT && git checkout $gitver && cd -
       CREW_SCRATCH_REPO_BUILD_PATH="${CREW_SCRATCH_REPO_ROOT}/${gitpath}"
       CREW_SCRATCH_REPO_DOCKERFILE="${CREW_SCRATCH_REPO_BUILD_PATH}/Dockerfile"
 
