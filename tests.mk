@@ -63,9 +63,10 @@ lint:
 	# SC2086: Double quote to prevent globbing and word splitting - https://github.com/koalaman/shellcheck/wiki/SC2086
 	# SC2143: Instead of [ -n $(foo | grep bar) ], use foo | grep -q bar - https://github.com/koalaman/shellcheck/wiki/SC2143
 	# SC2001: See if you can use ${variable//search/replace} instead. - https://github.com/koalaman/shellcheck/wiki/SC2001
+	# SC2076: Needed for RHS gobbing of regex functions in arch check
 	@echo linting...
 	@$(QUIET) shellcheck -e SC2029 ./contrib/crew_client.sh
-	@$(QUIET) find . -not -path '*/\.*' | xargs file | egrep "shell|bash" | grep -v directory | awk '{ print $$1 }' | sed 's/://g' | grep -v crew_client.sh | xargs shellcheck -e SC2034,SC2086,SC2143,SC2001
+	@$(QUIET) find . -not -path '*/\.*' | xargs file | egrep "shell|bash" | grep -v directory | awk '{ print $$1 }' | sed 's/://g' | grep -v crew_client.sh | xargs shellcheck -e SC2034,SC2086,SC2143,SC2001,SC2076
 
 unit-tests:
 	@echo running unit tests...
