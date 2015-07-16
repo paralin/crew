@@ -97,7 +97,7 @@ destroy_app() {
 }
 
 deploy_app() {
-  APP_TYPE="$1"; APP_TYPE=${APP_TYPE:="nodejs-express"}
+  APP_TYPE="$1"; APP_TYPE=${APP_TYPE:="dockerfile"}
   GIT_REMOTE="$2"; GIT_REMOTE=${GIT_REMOTE:="crew@crew.me:$TEST_APP"}
   TMP=$(mktemp -d -t "crew.me.XXXXX")
   rmdir $TMP && cp -r ./tests/apps/$APP_TYPE $TMP
@@ -116,7 +116,7 @@ deploy_app() {
 
 setup_client_repo() {
   TMP=$(mktemp -d -t "crew.me.XXXXX")
-  rmdir $TMP && cp -r ./tests/apps/nodejs-express $TMP
+  rmdir $TMP && cp -r ./tests/apps/dockerfile $TMP
   cd $TMP
   git init
   git config user.email "robot@example.com"

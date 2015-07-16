@@ -56,7 +56,7 @@ teardown() {
 
 @test "(core) run (with --options)" {
   deploy_app
-  run /bin/bash -c "crew --force --quiet run $TEST_APP node --version"
+  run /bin/bash -c "crew --force --quiet run $TEST_APP bash --version"
   echo "output: "$output
   echo "status: "$status
   assert_success
@@ -74,7 +74,7 @@ teardown() {
 }
 
 @test "(core) git-remote (off-port)" {
-  run deploy_app nodejs-express ssh://crew@127.0.0.1:22333/$TEST_APP
+  run deploy_app dockerfile ssh://crew@127.0.0.1:22333/$TEST_APP
   echo "output: "$output
   echo "status: "$status
   assert_success
