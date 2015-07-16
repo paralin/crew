@@ -119,7 +119,7 @@ case "$1" in
         CREW_ARCH_BASE_IMAGES_VERSION_VAR="CREW_${ARCHUPPER}_${IMAGENAMEUPPER}_VERSION_REMAP[@]"
         CREW_BASE_IMAGE_VERSION="${IMAGEVERSION}"
         CREW_ARCH_BASE_IMAGES_VERSION=(${!CREW_ARCH_BASE_IMAGES_VERSION_VAR})
-        if [ -n "${CREW_ARCH_BASE_IMAGES_VERSION}" ]; then
+        if [ ${#CREW_ARCH_BASE_IMAGES_VERSION[@]} -ne 0 ]; then
           for i in "${CREW_ARCH_BASE_IMAGES_VERSION[@]}"; do
             ipts=(${i//=/ })
             if [ "${ipts[0]}" == "${IMAGEVERSION}" ]; then
