@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $CREW_TRACE ]] && set -x
 
-[[ -n $1 ]] && rm -r "$CREW_ROOT/$1" > /dev/null
+[[ -n $1 ]] && [[ -d "$CREW_ROOT/$1" ]] && rm -r "$CREW_ROOT/$1" > /dev/null
