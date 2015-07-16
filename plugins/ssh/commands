@@ -13,7 +13,7 @@ case "$1" in
       echo "Specify an identifier for the key."
       exit -1
     fi
-    FINGERPRINT=$(ssh-keygen -lf /dev/stdin <<< $(echo $KEY) | awk '{print $2}')
+    FINGERPRINT=$(ssh-keygen -lf /dev/stdin <<< "$KEY" | awk '{print $2}')
     KEY_PREFIX="command=\"FINGERPRINT=$FINGERPRINT NAME=$IDENTIFIER crew \$SSH_ORIGINAL_COMMAND\",no-agent-forwarding,no-user-rc,no-X11-forwarding,no-port-forwarding"
     echo "$KEY_PREFIX $KEY" >> "/home/crew/.ssh/authorized_keys"
     echo $FINGERPRINT
