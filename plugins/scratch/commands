@@ -100,6 +100,19 @@ case "$1" in
 
       # Clone list of libraries
       git clone https://github.com/docker-library/official-images.git "$CREW_OFFICIAL_IMAGES_PATH"
+
+      # Bring in any patches specified by the user
+      if [ -n "$CREW_OFFICAL_IMAGE_FORKS" ]; then
+        cd $CREW_OFFICIAL_IMAGES_PATH
+        idx=0
+        for i in "${CREW_OFFICIAL_IMAGE_FORKS[@]}"; do
+          git remote add pull-$idx $i
+          git fetch pull-$idx master
+          git merge --no-edit pull-$idx/master
+          idx=$((idx + 1))
+        done
+        cd -
+      fi
     fi
 
     # Check to see if this is a supported pullable image
