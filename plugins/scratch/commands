@@ -5,6 +5,9 @@ source "$(dirname $0)/../common/functions"
 if [ -z "$ARCH" ]; then
   ARCH=$(uname -m)
 fi
+if [ "$ARCH" == "armv7l" ]; then
+  ARCH=arm
+fi
 ARCHUPPER=$(echo "$ARCH" | awk '{print toupper($0)}')
 
 # To save time these base images are used instead of compiling all the way down
