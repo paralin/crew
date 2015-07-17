@@ -13,7 +13,7 @@ ifeq (vagrant-crew,$(firstword $(MAKECMDGOALS)))
   $(eval $(RUN_ARGS):;@:)
 endif
 
-.PHONY: all apt-update debinstall copyfiles man-db version plugins dependencies sshcommand pluginhook docker aufs stack count crew-installer vagrant-acl-add vagrant-crew
+.PHONY: all apt-update install debinstall copyfiles man-db version plugins dependencies sshcommand pluginhook docker aufs stack count crew-installer vagrant-acl-add vagrant-crew
 
 include tests.mk
 include deb.mk
