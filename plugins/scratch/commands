@@ -10,15 +10,15 @@ ARCHUPPER=$(echo "$ARCH" | awk '{print toupper($0)}')
 # To save time these base images are used instead of compiling all the way down
 # This is because ubuntu, for example, takes a LONG time to clone.
 CREW_ARM_BASE_IMAGES=(\
-  "ubuntu=armbuild/ubuntu" \
-  "busybox=armbuild/busybox" \
-  "wordpress=armbuild/wordpress" \
-  "fedora=armv7/armhf-fedora" \
-  "java8=armv7/armhf-java8" \
-  "archlinux=armv7/armhf-archlinux" \
-  "baseimage=armv7/armhf-baseimage" \
-  "debian=armbuild/debian" \
-  "gentoo=armbuild/gentoo" \
+  ubuntu=armbuild/ubuntu \
+  busybox=armbuild/busybox \
+  wordpress=armbuild/wordpress \
+  fedora=armv7/armhf-fedora \
+  java8=armv7/armhf-java8 \
+  archlinux=armv7/armhf-archlinux \
+  baseimage=armv7/armhf-baseimage \
+  debian=armbuild/debian \
+  gentoo=armbuild/gentoo \
 )
 
 # Can specify version remaps like so:
