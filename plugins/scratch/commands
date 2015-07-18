@@ -205,6 +205,7 @@ case "$1" in
       unset CREW_SUB_IMAGE
 
       # Recurse into this image
+      export CREW_SCRATCHSESSION
       CREW_SUB_IMAGE=$($0 scratch:build $CREW_BASE_IMAGE | tail -n1 |tee >(cat - >&5))
 
       # Explicit mode will make sure the last one was successful
