@@ -68,7 +68,7 @@ case "$1" in
       crew_log_info1 "$IMAGE exists, skipping..."
       export CREW_SUB_IMAGE="$IMAGE"
       echo $CREW_SUB_IMAGE
-      return 0 || exit 0
+      exit 0
     fi
 
     # If the image contains a / then it is namespaced, and cannot be fetched through the official images
@@ -78,7 +78,7 @@ case "$1" in
       docker pull ${IMAGE}
       export CREW_SUB_IMAGE="${IMAGE}"
       echo $CREW_SUB_IMAGE
-      return 0 || exit 0
+      exit 0
     fi
 
     # Make sure ctrl c is capable of killing everything
@@ -150,7 +150,7 @@ case "$1" in
         export CREW_SUB_IMAGE="${CREW_BASE_IMAGE}:${CREW_BASE_IMAGE_VERSION}"
         docker pull ${CREW_SUB_IMAGE}
         echo $CREW_SUB_IMAGE
-        return 0 || exit 0
+        exit 0
       fi
     fi
 
