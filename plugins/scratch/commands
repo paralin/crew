@@ -197,11 +197,11 @@ case "$1" in
       exit 1
     fi
 
+    exec 5>&1
     CREW_BASE_IMAGE=$(echo "$fromstr" | awk '{ print $2; }')
     if [ "$CREW_BASE_IMAGE" == "scratch" ]; then
       echo "${IMAGENAME} is built from scratch, starting build here."
     else
-      exec 5>&1
       unset CREW_SUB_IMAGE
 
       # Recurse into this image
@@ -217,7 +217,7 @@ case "$1" in
     fi
 
     crew_log_info1 "Starting docker build on ${IMAGE}...";
-    ID=$(docker build -t "$IMAGENAME" "$CREW_SCRATCH_REPO_BUILD_PATH")
+    ID=$(docker build -t "$IMAGENAME" "$CREW_SCRATCH_REPO_BUILD_PATH" | tee >(cat - >&5))
     docker tag $ID $IMAGE
     export CREW_BASE_IMAGE=$IMAGE
 
