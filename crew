@@ -156,20 +156,32 @@ case "$1" in
     # kill the old container
     if [[ -n "$oldids" ]]; then
       # Let the old container finish processing requests, before terminating it
-      WAIT="${CREW_WAIT_TO_RETIRE:-60}"
-      crew_log_info1 "Shutting down old containers in $WAIT seconds"
-      for oldid in $oldids; do
-        crew_log_info2 "$oldid"
-      done
-      (
-        exec >/dev/null 2>/dev/null </dev/null
-        trap '' INT HUP
-        sleep $WAIT
+      # This has been changed to 0 on default as usually people won't want this
+      WAIT="${CREW_WAIT_TO_RETIRE:-0}"
+
+      if [ $CREW_WAIT_TO_RETIRE -gt 0 ]; then
+        crew_log_info1 "Shutting down old containers in $WAIT seconds"
         for oldid in $oldids; do
-          docker stop $oldid &> /dev/null
-          docker kill $oldid &> /dev/null  # force a kill as docker seems to not send SIGKILL as the docs would indicate
+          crew_log_info2 "$oldid"
         done
-      ) & disown -a
+        (
+          exec >/dev/null 2>/dev/null </dev/null
+          trap '' INT HUP
+          sleep $WAIT
+          for oldid in $oldids; do
+            docker stop $oldid &> /dev/null
+            docker kill $oldid &> /dev/null  # force a kill as docker seems to not send SIGKILL as the docs would indicate
+          done
+        ) & disown -a
+      else
+        crew_log_info1 "Shutting down old containers immediately..."
+        for oldid in $oldids; do
+          crew_log_info2 "$oldid"
+          docker stop $oldid &> /dev/null
+          docker kill $oldid &> /dev/null
+        done
+      fi
+
       # Use trap since disown/nohup don't seem to keep child alive
       # Give child process just enough time to set the traps
       sleep 0.1
