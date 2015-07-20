@@ -217,8 +217,8 @@ case "$1" in
     fi
 
     crew_log_info1 "Starting docker build on ${IMAGE}...";
-    ID=$(docker build -t "$IMAGENAME:$IMAGEVERSION" "$CREW_SCRATCH_REPO_BUILD_PATH" | tee >(cat - >&5) | tail -n1 | grep -o '[^ ]*$')
-    #docker tag $ID $IMAGE
+    ID=$(docker build "$CREW_SCRATCH_REPO_BUILD_PATH" | tee >(cat - >&5) | tail -n1 | grep -o '[^ ]*$')
+    docker tag $ID $IMAGE
     export CREW_BASE_IMAGE=$IMAGE
 
     exit $CREW_NOT_IMPLEMENTED_EXIT
