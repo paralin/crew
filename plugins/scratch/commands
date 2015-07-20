@@ -206,7 +206,7 @@ case "$1" in
 
       # Recurse into this image
       export CREW_SCRATCHSESSION
-      CREW_SUB_IMAGE=$($0 scratch:build $CREW_BASE_IMAGE | tail -n1 |tee >(cat - >&5))
+      CREW_SUB_IMAGE=$($0 scratch:build $CREW_BASE_IMAGE | tee >(cat - >&5) | tail -n1 )
 
       # Explicit mode will make sure the last one was successful
       # Patch the from line with the new base
