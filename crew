@@ -159,7 +159,7 @@ case "$1" in
       # This has been changed to 0 on default as usually people won't want this
       WAIT="${CREW_WAIT_TO_RETIRE:-0}"
 
-      if [ $CREW_WAIT_TO_RETIRE -gt 0 ]; then
+      if [ "$WAIT" -gt 0 ]; then
         crew_log_info1 "Shutting down old containers in $WAIT seconds"
         for oldid in $oldids; do
           crew_log_info2 "$oldid"
