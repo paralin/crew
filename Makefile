@@ -1,6 +1,5 @@
 CREW_VERSION = master
 
-SSHCOMMAND_URL ?= https://raw.github.com/progrium/sshcommand/master/sshcommand
 PLUGINHOOK_URL ?= https://s3.amazonaws.com/progrium-pluginhook/pluginhook_0.1.0_amd64.deb
 PLUGINS_PATH ?= /var/lib/crew/plugins
 INSTALL ?= install
@@ -13,7 +12,7 @@ ifeq (vagrant-crew,$(firstword $(MAKECMDGOALS)))
   $(eval $(RUN_ARGS):;@:)
 endif
 
-.PHONY: all apt-update install debinstall copyfiles man-db version plugins dependencies sshcommand pluginhook docker aufs stack count crew-installer vagrant-acl-add vagrant-crew
+.PHONY: all apt-update install debinstall copyfiles man-db version plugins dependencies pluginhook docker aufs stack count crew-installer vagrant-acl-add vagrant-crew
 
 include tests.mk
 include deb.mk
@@ -26,7 +25,6 @@ install: dependencies copyfiles plugin-dependencies plugins version
 release: deb-all package_cloud packer
 
 package_cloud:
-	package_cloud push crew/crew/ubuntu/trusty sshcommand*.deb
 	package_cloud push crew/crew/ubuntu/trusty pluginhook*.deb
 	package_cloud push crew/crew/ubuntu/trusty rubygem*.deb
 	package_cloud push crew/crew/ubuntu/trusty crew*.deb
@@ -59,7 +57,7 @@ plugin-dependencies: pluginhook
 plugins: pluginhook docker
 	crew plugins-install
 
-dependencies: apt-update sshcommand pluginhook docker help2man man-db
+dependencies: apt-update pluginhook docker help2man man-db
 	$(MAKE) -e stack
 
 apt-update:
@@ -70,11 +68,6 @@ help2man:
 
 man-db:
 	apt-get install -qq -y man-db
-
-sshcommand:
-	wget -qO /usr/local/bin/sshcommand ${SSHCOMMAND_URL}
-	chmod +x /usr/local/bin/sshcommand
-	sshcommand create crew /usr/local/bin/crew
 
 pluginhook:
 	wget -qO /tmp/pluginhook_0.1.0_amd64.deb ${PLUGINHOOK_URL}
@@ -114,7 +107,7 @@ count:
 crew-installer:
 
 vagrant-acl-add:
-	vagrant ssh -- sudo sshcommand acl-add crew $(USER)
+	vagrant ssh -- sudo crew sshkey:add crew $(USER)
 
 vagrant-crew:
 	vagrant ssh -- "sudo -H -u root bash -c 'crew $(RUN_ARGS)'"
@@ -123,5 +116,5 @@ vagrant-crew:
 install:
 	-rm -rf /var/lib/crew/
 	mkdir -p /var/lib/crew/plugins/
-	$(INSTALL) -D ./plugins/ /var/lib/crew/plugins/ -m 0755
+	cp -r ./plugins/* /var/lib/crew/plugins/
 	$(INSTALL) -m 0755 ./crew /usr/local/bin

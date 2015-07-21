@@ -20,7 +20,7 @@ cd "$(dirname $SELF)/.." && vagrant up | indent
 popd > /dev/null
 
 echo "-----> Installing SSH public keys..."
-ssh -o "StrictHostKeyChecking=no" -i ~/.vagrant.d/insecure_private_key root@crew.me "sshcommand acl-add crew test" < $PUBLIC_KEY
+ssh -o "StrictHostKeyChecking=no" -i ~/.vagrant.d/insecure_private_key root@crew.me "crew sshkey:add test" < $PUBLIC_KEY
 
 for app_path in apps/*; do
   app=$(basename $app_path)

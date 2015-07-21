@@ -5,7 +5,6 @@ MODE="$1"; MODE=${MODE:="testing"}
 setup_circle() {
   MAKE_ENV="CI=true"
   echo "setting up with MAKE_ENV: $MAKE_ENV"
-  sudo -E CI=true make -e sshcommand
   # need to add the crew user to the docker group
   sudo usermod -G docker crew
   #### circle does some weird *expletive* with regards to root and gh auth (needed for gitsubmodules test)
