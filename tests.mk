@@ -40,8 +40,10 @@ ifeq ($(shell grep 22333 /etc/ssh/sshd_config),)
 endif
 
 	@echo "-----> Installing SSH public key..."
-	sudo sshcommand acl-remove crew test
-	cat /root/.ssh/crew_test_rsa.pub | sudo sshcommand acl-add crew test
+	sudo mkdir -p /home/crew/
+	sudo chown -R crew:crew /home/crew/
+
+	cat /root/.ssh/crew_test_rsa.pub | sudo crew sshkey:add test
 
 	@echo "-----> Intitial SSH connection to populate known_hosts..."
 	ssh -o StrictHostKeyChecking=no crew@crew.me help > /dev/null
