@@ -207,6 +207,21 @@ get_app_running_container_ids() {
   echo "$APP_RUNNING_CONTAINER_IDS"
 }
 
+get_app_stopped_container_ids() {
+  local APP=$1
+  verify_app_name $APP
+
+  ! (is_deployed $APP) && crew_log_fail "App $APP has not been deployed"
+  local CIDS=$(get_app_container_ids $APP)
+
+  for CID in $CIDS;do
+    local APP_CONTAINER_STATUS=$(docker inspect -f '{{.State.Running}}' "$CID" || false)
+    [[ "$APP_CONTAINER_STATUS" == "false" ]] && local APP_STOPPED_CONTAINER_IDS+="$CID "
+  done
+
+  echo "$APP_STOPPED_CONTAINER_IDS"
+}
+
 is_deployed() {
   APP="$1"
   if [[ -f "$CREW_ROOT/$APP/CONTAINER" ]] || [[ $(ls $CREW_ROOT/$APP/CONTAINER.* &> /dev/null; echo $?) -eq 0 ]];then

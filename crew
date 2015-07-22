@@ -213,12 +213,6 @@ case "$1" in
     pluginhook update
     ;;
 
-  # DEPRECATED as of v0.3.14
-  deploy:all)
-      echo "*DEPRECATED* in v0.3.14: deploy:all will be removed in future versions"
-      crew ps:restartall
-    ;;
-
   help|'')
     echo "Usage: crew [--quiet|--trace|--rm-container|--rm|--force] COMMAND <app> [command-specific-options]"
     echo ""
