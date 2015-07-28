@@ -21,9 +21,11 @@ case "$1" in
             fromstr=$(grep "^FROM" Dockerfile) || true
             if [ -n "$fromstr" ]; then
               fromstr=$(echo "$fromstr" | awk '{ print $2; }')
-              source crew scratch:build $fromstr
+              exec 5>&1
+              CREW_SUB_IMAGE=$(crew scratch:build $fromstr | tee >(cat - >&5) | tail -n1 )
+
               if [ -n "$CREW_SUB_IMAGE" ]; then
-                echo "Patching ${fromstr} FROM declaration: ${fromstr} -> ${CREW_SUB_IMAGE}"
+                echo "Patching FROM declaration: ${fromstr} -> ${CREW_SUB_IMAGE}"
                 sed -i -e "s#^FROM.*\$#FROM ${CREW_SUB_IMAGE}#" Dockerfile
               fi
             fi

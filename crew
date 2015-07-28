@@ -60,6 +60,7 @@ case "$1" in
     crew_log_info1 "Deploying $APP..."
     crew deploy "$APP"
     crew_log_info2 "Application deployed!"
+    exit 0
     ;;
 
   deploy)
