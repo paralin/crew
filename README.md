@@ -1,4 +1,4 @@
-# Crew [![IRC Network](https://img.shields.io/badge/irc-freenode-blue.svg "IRC Freenode")](https://webchat.freenode.net/?channels=crew)
+# Crew [![IRC Network](https://img.shields.io/badge/irc-freenode-blue.svg "IRC Freenode")](https://webchat.freenode.net/?channels=crew)[![Circle CI](https://circleci.com/gh/paralin/crew.svg?style=svg)](https://circleci.com/gh/paralin/crew)
 
 A fork of Docker powered mini-Heroku crew oriented towards embedded linux containerized software.
 
@@ -8,7 +8,6 @@ A fork of Docker powered mini-Heroku crew oriented towards embedded linux contai
 
 ## Installing
 
-<<<<<<< HEAD
 There is no non-source way of installing yet.
 
 ## Documentation
