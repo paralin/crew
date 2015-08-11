@@ -78,17 +78,12 @@ else
 	@$(QUIET) ./tests/ci/unit_test_runner.sh $$UNIT_TEST_BATCH
 endif
 
-deploy-test-checks-root:
-	@echo deploying checks-root app...
-	cd tests && ./test_deploy ./apps/checks-root crew.me '' true
-
 deploy-test-dockerfile:
 	@echo deploying dockerfile app...
 	cd tests && ./test_deploy ./apps/dockerfile crew.me
 
 deploy-tests:
 	@echo running deploy tests...
-	@$(QUIET) $(MAKE) deploy-test-checks-root
 	@$(QUIET) $(MAKE) deploy-test-dockerfile
 
 test: setup-deploy-tests lint unit-tests deploy-tests
