@@ -8,19 +8,13 @@ PLUGINHOOK_VERSION ?= 0.0.1
 PLUGINHOOK_ARCHITECTURE = amd64
 PLUGINHOOK_PACKAGE_NAME = pluginhook_$(PLUGINHOOK_VERSION)_$(PLUGINHOOK_ARCHITECTURE).deb
 
-SSHCOMMAND_DESCRIPTION = 'Turn SSH into a thin client specifically for your app'
-SSHCOMMAND_REPO_NAME ?= progrium/sshcommand
-SSHCOMMAND_VERSION ?= 0.0.1
-SSHCOMMAND_ARCHITECTURE = amd64
-SSHCOMMAND_PACKAGE_NAME = sshcommand_$(SSHCOMMAND_VERSION)_$(SSHCOMMAND_ARCHITECTURE).deb
-
 GEM_ARCHITECTURE = amd64
 
 GOROOT = /usr/lib/go
 GOBIN = /usr/bin/go
 GOPATH = /home/vagrant/gocode
 
-.PHONY: install-from-deb deb-all deb-crew deb-gems deb-pluginhook deb-setup deb-sshcommand
+.PHONY: install-from-deb deb-all deb-crew deb-gems deb-pluginhook deb-setup
 
 install-from-deb:
 	echo "--> Initial apt-get update"
@@ -48,7 +42,7 @@ install-from-deb:
 
 	echo "--> Done!"
 
-deb-all: deb-crew deb-gems deb-pluginhook deb-sshcommand
+deb-all: deb-crew deb-gems deb-pluginhook
 	mv /tmp/*.deb .
 	echo "Done"
 
@@ -113,21 +107,4 @@ deb-pluginhook: deb-setup
 
 	echo "-> Creating $(PLUGINHOOK_PACKAGE_NAME)"
 	sudo fpm -t deb -s dir -C /tmp/build -n pluginhook -v $(PLUGINHOOK_VERSION) -a $(PLUGINHOOK_ARCHITECTURE) -p $(PLUGINHOOK_PACKAGE_NAME) --url "https://github.com/$(PLUGINHOOK_REPO_NAME)" --description $(PLUGINHOOK_DESCRIPTION) --license 'MIT License' .
-	mv *.deb /tmp
-
-deb-sshcommand: deb-setup
-	rm -rf /tmp/tmp /tmp/build $(SSHCOMMAND_PACKAGE_NAME)
-	mkdir -p /tmp/tmp /tmp/build
-
-	echo "-> Cloning repository"
-	git clone -q "git@github.com:$(SSHCOMMAND_REPO_NAME).git" /tmp/tmp/sshcommand > /dev/null
-	rm -rf /tmp/tmp/sshcommand/.git /tmp/tmp/sshcommand/.gitignore
-
-	echo "-> Copying files into place"
-	mkdir -p "/tmp/build/usr/local/bin"
-	cp /tmp/tmp/sshcommand/sshcommand /tmp/build/usr/local/bin/sshcommand
-	chmod +x /tmp/build/usr/local/bin/sshcommand
-
-	echo "-> Creating $(SSHCOMMAND_PACKAGE_NAME)"
-	sudo fpm -t deb -s dir -C /tmp/build -n sshcommand -v $(SSHCOMMAND_VERSION) -a $(SSHCOMMAND_ARCHITECTURE) -p $(SSHCOMMAND_PACKAGE_NAME) --url "https://github.com/$(SSHCOMMAND_REPO_NAME)" --description $(SSHCOMMAND_DESCRIPTION) --license 'MIT License' .
 	mv *.deb /tmp

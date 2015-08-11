@@ -34,8 +34,8 @@ case "$1" in
 
   help | sshkey:help)
     cat && cat<<EOF
-    sshkey:add <identifier>                                    Add a SSH public key for access with identifier.
-    sshkey:remove <identifier>                                 Remove a SSH public key by identifier.
+    sshkey:add <identifier>, Add a SSH public key for access with identifier.
+    sshkey:remove <identifier>, Remove a SSH public key by identifier.
 EOF
     ;;
 

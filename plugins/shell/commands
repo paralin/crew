@@ -48,7 +48,7 @@ case "$1" in
 
   help | shell:help)
     cat && cat<<EOF
-    shell                                                      Spawn crew shell
+    shell, Spawn crew shell
 EOF
     ;;
 

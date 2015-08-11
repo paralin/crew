@@ -226,7 +226,7 @@ case "$1" in
 
   help | build:help)
     cat && cat<<EOF
-    scratch:build <image>                                      Build a Docker standard library from scratch.
+    scratch:build <image>, Build a Docker standard library from scratch.
 EOF
     ;;
 

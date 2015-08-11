@@ -8,6 +8,7 @@ A fork of Docker powered mini-Heroku crew oriented towards embedded linux contai
 
 ## Installing
 
+<<<<<<< HEAD
 There is no non-source way of installing yet.
 
 ## Documentation

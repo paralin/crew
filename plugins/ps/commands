@@ -12,7 +12,7 @@ case "$1" in
     ! (is_deployed $APP) && echo "App $APP has not been deployed" && exit 0
 
     for CID in $CONTAINER_IDS; do
-      docker exec -ti "$CID" /bin/bash -c "ps auxwww"
+      docker exec -ti "$CID" /bin/sh -c "ps auxwww"
     done
   ;;
 
@@ -112,14 +112,14 @@ case "$1" in
 
   help | ps:help)
     cat && cat<<EOF
-    ps <app>                                                   List processes running in app container(s)
-    ps:scale <app> <proc>=<count> [<proc>=<count>]             Set how many processes of a given process to run
-    ps:start <app>                                             Start app container(s)
-    ps:stop <app>                                              Stop app container(s)
-    ps:rebuild <app>                                           Rebuild an app
-    ps:rebuildall                                              Rebuild all apps
-    ps:restart <app>                                           Restart app container(s)
-    ps:restartall                                              Restart all deployed app containers
+    ps <app>, List processes running in app container(s)
+    ps:scale <app> <proc>=<count> [<proc>=<count>], Set how many instances of a given process to run
+    ps:start <app>, Start app container(s)
+    ps:stop <app>, Stop app container(s)
+    ps:rebuild <app>, Rebuild an app
+    ps:rebuildall, Rebuild all apps
+    ps:restart <app>, Restart app container(s)
+    ps:restartall, Restart all deployed app containers
 EOF
     ;;
 

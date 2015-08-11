@@ -82,82 +82,13 @@ deploy-test-checks-root:
 	@echo deploying checks-root app...
 	cd tests && ./test_deploy ./apps/checks-root crew.me '' true
 
-deploy-test-clojure:
-	@echo deploying config app...
-	cd tests && ./test_deploy ./apps/clojure crew.me
-
-deploy-test-config:
-	@echo deploying config app...
-	cd tests && ./test_deploy ./apps/config crew.me
-
 deploy-test-dockerfile:
 	@echo deploying dockerfile app...
 	cd tests && ./test_deploy ./apps/dockerfile crew.me
 
-deploy-test-dockerfile-noexpose:
-	@echo deploying dockerfile-noexpose app...
-	cd tests && ./test_deploy ./apps/dockerfile-noexpose crew.me
-
-deploy-test-gitsubmodules:
-	@echo deploying gitsubmodules app...
-	cd tests && ./test_deploy ./apps/gitsubmodules crew.me
-
-deploy-test-go:
-	@echo deploying go app...
-	cd tests && ./test_deploy ./apps/go crew.me
-
-deploy-test-java:
-	@echo deploying java app...
-	cd tests && ./test_deploy ./apps/java crew.me
-
-deploy-test-multi:
-	@echo deploying multi app...
-	cd tests && ./test_deploy ./apps/multi crew.me
-
-deploy-test-nodejs-express:
-	@echo deploying nodejs-express app...
-	cd tests && ./test_deploy ./apps/nodejs-express crew.me
-
-deploy-test-nodejs-express-noprocfile:
-	@echo deploying nodejs-express app with no Procfile...
-	cd tests && ./test_deploy ./apps/nodejs-express-noprocfile crew.me
-
-deploy-test-php:
-	@echo deploying php app...
-	cd tests && ./test_deploy ./apps/php crew.me
-
-deploy-test-python-flask:
-	@echo deploying python-flask app...
-	cd tests && ./test_deploy ./apps/python-flask crew.me
-
-deploy-test-ruby:
-	@echo deploying ruby app...
-	cd tests && ./test_deploy ./apps/ruby crew.me
-
-deploy-test-scala:
-	@echo deploying scala app...
-	cd tests && ./test_deploy ./apps/scala crew.me
-
-deploy-test-static:
-	@echo deploying static app...
-	cd tests && ./test_deploy ./apps/static crew.me
-
 deploy-tests:
 	@echo running deploy tests...
 	@$(QUIET) $(MAKE) deploy-test-checks-root
-	@$(QUIET) $(MAKE) deploy-test-config
-	@$(QUIET) $(MAKE) deploy-test-clojure
 	@$(QUIET) $(MAKE) deploy-test-dockerfile
-	@$(QUIET) $(MAKE) deploy-test-dockerfile-noexpose
-	@$(QUIET) $(MAKE) deploy-test-gitsubmodules
-	@$(QUIET) $(MAKE) deploy-test-go
-	@$(QUIET) $(MAKE) deploy-test-java
-	@$(QUIET) $(MAKE) deploy-test-multi
-	@$(QUIET) $(MAKE) deploy-test-nodejs-express
-	@$(QUIET) $(MAKE) deploy-test-nodejs-express-noprocfile
-	@$(QUIET) $(MAKE) deploy-test-php
-	@$(QUIET) $(MAKE) deploy-test-python-flask
-	@$(QUIET) $(MAKE) deploy-test-scala
-	@$(QUIET) $(MAKE) deploy-test-static
 
 test: setup-deploy-tests lint unit-tests deploy-tests
