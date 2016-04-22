@@ -23,16 +23,25 @@ setup_circle() {
   make -e ci-dependencies
 }
 
-case "$CIRCLE_NODE_INDEX" in
-  0)
-    echo "=====> make unit-tests (1/2) on CIRCLE_NODE_INDEX: $CIRCLE_NODE_INDEX"
-    [[ "$MODE" == "setup" ]] && setup_circle && exit 0
-    sudo -E UNIT_TEST_BATCH=1 make -e unit-tests
-    ;;
+if [ -n "$CIRCLE_MULTINODE" ]; then
+  case "$CIRCLE_NODE_INDEX" in
+    0)
+      echo "=====> make unit-tests (1/2) on CIRCLE_NODE_INDEX: $CIRCLE_NODE_INDEX"
+      [[ "$MODE" == "setup" ]] && setup_circle && exit 0
+      sudo -E UNIT_TEST_BATCH=1 make -e unit-tests
+      ;;
 
-  1)
-    echo "=====> make unit-tests (2/2) on CIRCLE_NODE_INDEX: $CIRCLE_NODE_INDEX"
-    [[ "$MODE" == "setup" ]] && setup_circle && exit 0
-    sudo -E UNIT_TEST_BATCH=2 make -e unit-tests
-    ;;
-esac
+    1)
+      echo "=====> make unit-tests (2/2) on CIRCLE_NODE_INDEX: $CIRCLE_NODE_INDEX"
+      [[ "$MODE" == "setup" ]] && setup_circle && exit 0
+      sudo -E UNIT_TEST_BATCH=2 make -e unit-tests
+      ;;
+  esac
+else
+      echo "=====> make unit-tests (1/2)"
+      [[ "$MODE" == "setup" ]] && setup_circle && exit 0
+
+      sudo -E UNIT_TEST_BATCH=1 make -e unit-tests
+      echo "=====> make unit-tests (2/2)"
+      sudo -E UNIT_TEST_BATCH=2 make -e unit-tests
+fi
