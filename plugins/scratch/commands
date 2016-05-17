@@ -5,7 +5,7 @@ source "$(dirname $0)/../common/functions"
 if [ -z "$ARCH" ]; then
   ARCH=$(uname -m)
 fi
-if [ "$ARCH" == "armv7l" ]; then
+if [[ $ARCH == armv* ]]; then
   ARCH=arm
 fi
 ARCHUPPER=$(echo "$ARCH" | awk '{print toupper($0)}')
@@ -14,7 +14,10 @@ ARCHUPPER=$(echo "$ARCH" | awk '{print toupper($0)}')
 # This is because ubuntu, for example, takes a LONG time to clone.
 CREW_ARM_BASE_IMAGES=(\
   ubuntu=armbuild/ubuntu \
+  alpine=armbuild/alpine \
+  "slackware-miniroot"=armbuild/slackware-miniroot \
   busybox=armbuild/busybox \
+  golang=armbuild/golang \
   wordpress=armbuild/wordpress \
   fedora=armv7/armhf-fedora \
   java8=armv7/armhf-java8 \
